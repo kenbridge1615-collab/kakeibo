@@ -144,18 +144,23 @@ input:focus { outline: none; border-color: #555; background: #fff; }
   <div id="tab-summary" class="section">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <span style="font-size:16px;font-weight:600">集計</span>
-      <select class="period-sel" id="sum-mode" onchange="renderSummary()">
-        <option value="day">日別</option>
-        <option value="month" selected>月別</option>
-      </select>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="filter-btn" id="graph-btn" onclick="toggleGraph()" style="font-size:12px;padding:6px 12px">グラフ</button>
+        <select class="period-sel" id="sum-mode" onchange="renderSummary()">
+          <option value="day">日別</option>
+          <option value="month" selected>月別</option>
+        </select>
+      </div>
     </div>
+    <div id="graph-area" style="display:none;margin-bottom:12px"></div>
+    <div id="month-filter-area" style="display:none;margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap"></div>
     <div class="card"><div id="sum-content"></div></div>
     <div class="card">
       <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:#666">支払い形態ごとの支出</div>
       <div id="pay-break"></div>
     </div>
   </div>
-  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 1.1</div>
+  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 1.5</div>
 </div>
 
 <script>
@@ -269,38 +274,149 @@ function renderHistory(){
     '<div class="metric"><div class="metric-label">収支</div><div class="metric-value" style="color:'+(bal>=0?'#2e7d32':'#c62828')+'">'+(bal>=0?'+':'')+yen(bal)+'</div></div>';
   el.innerHTML=filtered.length?filtered.map(function(r){return recordHTML(r,true);}).join(''):'<div class="empty">記録がありません</div>';
 }
+var filterMonth='all';
+function setMonthFilter(m){
+  filterMonth=m;
+  document.querySelectorAll('.mf-btn').forEach(function(b){
+    b.className='filter-btn mf-btn'+(b.dataset.m===m?' active':'');
+  });
+  renderSummary();
+}
 function renderSummary(){
   var mode=document.getElementById('sum-mode').value,el=document.getElementById('sum-content'),pb=document.getElementById('pay-break');
-  if(!records.length){el.innerHTML='<div class="empty">まだ記録がありません</div>';pb.innerHTML='';return;}
-  var keyFn=mode==='day'?fmtDay:fmtYM;
+  var mfa=document.getElementById('month-filter-area');
+  if(!records.length){el.innerHTML='<div class="empty">まだ記録がありません</div>';pb.innerHTML='';mfa.style.display='none';return;}
   var pays=['wallet','paypay','suica'];
   var labels={wallet:'財布',paypay:'PayPay',suica:'Suica'};
   var tagBg={wallet:'#555',paypay:'#FF0033',suica:'#00FA9A'};
   var tagCol={wallet:'#fff',paypay:'#fff',suica:'#005c38'};
-  var html='';
-  pays.forEach(function(p){
-    var grouped={};
-    records.filter(function(r){return r.pay===p;}).forEach(function(r){
-      var k=keyFn(r.date);
-      if(!grouped[k])grouped[k]={inc:0,exp:0};
-      if(r.type==='income')grouped[k].inc+=r.amount;
-      else grouped[k].exp+=r.amount;
+
+  if(mode==='day'){
+    // 月フィルターボタンを生成
+    var months=[];
+    records.forEach(function(r){var m=fmtYM(r.date);if(months.indexOf(m)===-1)months.push(m);});
+    months.sort().reverse();
+    if(filterMonth==='all'||months.indexOf(filterMonth)===-1)filterMonth=months[0];
+    mfa.style.display='flex';
+    mfa.innerHTML=months.map(function(m){
+      return'<button class="filter-btn mf-btn'+(m===filterMonth?' active':'')+'" data-m="'+m+'" onclick="setMonthFilter(\''+m+'\')">'+m+'</button>';
+    }).join('');
+
+    var html='';
+    var filteredRecs=records.filter(function(r){return fmtYM(r.date)===filterMonth;});
+    pays.forEach(function(p){
+      var grouped={};
+      filteredRecs.filter(function(r){return r.pay===p;}).forEach(function(r){
+        var k=fmtDay(r.date);
+        if(!grouped[k])grouped[k]={inc:0,exp:0};
+        if(r.type==='income')grouped[k].inc+=r.amount;
+        else grouped[k].exp+=r.amount;
+      });
+      var keys=Object.keys(grouped).sort().reverse();
+      if(!keys.length)return;
+      html+='<div style="margin-bottom:20px">'+
+        '<div style="margin-bottom:8px"><span style="display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;background:'+tagBg[p]+';color:'+tagCol[p]+';font-weight:600">'+labels[p]+'</span></div>'+
+        '<table class="sum-table"><thead><tr><th>日付</th><th>収入</th><th>支出</th><th>収支</th></tr></thead><tbody>'+
+        keys.map(function(k){
+          var bal=grouped[k].inc-grouped[k].exp;
+          return'<tr><td>'+k.slice(5)+'</td><td style="color:#2e7d32">'+(grouped[k].inc?'+'+yen(grouped[k].inc):'-')+'</td><td style="color:#c62828">'+(grouped[k].exp?'-'+yen(grouped[k].exp):'-')+'</td><td style="color:'+(bal>=0?'#2e7d32':'#c62828')+';font-weight:600">'+(bal>=0?'+':'')+yen(bal)+'</td></tr>';
+        }).join('')+'</tbody></table></div>';
     });
-    var keys=Object.keys(grouped).sort().reverse();
-    if(!keys.length)return;
-    html+='<div style="margin-bottom:20px">'+
-      '<div style="margin-bottom:8px"><span style="display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;background:'+tagBg[p]+';color:'+tagCol[p]+';font-weight:600">'+labels[p]+'</span></div>'+
-      '<table class="sum-table"><thead><tr><th>'+(mode==='day'?'日付':'年月')+'</th><th>収入</th><th>支出</th><th>収支</th></tr></thead><tbody>'+
-      keys.map(function(k){
-        var bal=grouped[k].inc-grouped[k].exp;
-        return'<tr><td>'+k+'</td><td style="color:#2e7d32">'+(grouped[k].inc?'+'+yen(grouped[k].inc):'-')+'</td><td style="color:#c62828">'+(grouped[k].exp?'-'+yen(grouped[k].exp):'-')+'</td><td style="color:'+(bal>=0?'#2e7d32':'#c62828')+';font-weight:600">'+(bal>=0?'+':'')+yen(bal)+'</td></tr>';
-      }).join('')+'</tbody></table></div>';
-  });
-  el.innerHTML=html||'<div class="empty">まだ記録がありません</div>';
+    el.innerHTML=html||'<div class="empty">記録がありません</div>';
+
+  } else {
+    // 月別：年月・財布・PayPay・Suica・合計を横並び1テーブル
+    mfa.style.display='none';
+    var allMonths=[];
+    records.forEach(function(r){var m=fmtYM(r.date);if(allMonths.indexOf(m)===-1)allMonths.push(m);});
+    allMonths.sort().reverse();
+    var monthData={};
+    allMonths.forEach(function(m){monthData[m]={wallet:0,paypay:0,suica:0,total:0};});
+    records.filter(function(r){return r.type==='expense';}).forEach(function(r){
+      var m=fmtYM(r.date);
+      monthData[m][r.pay]+=r.amount;
+      monthData[m].total+=r.amount;
+    });
+    var html='<table class="sum-table"><thead><tr>'+
+      '<th style="text-align:left">年月</th>'+
+      '<th><span style="display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;background:#555;color:#fff">財布</span></th>'+
+      '<th><span style="display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;background:#FF0033;color:#fff">PP</span></th>'+
+      '<th><span style="display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;background:#00FA9A;color:#005c38">Suica</span></th>'+
+      '<th style="color:#1a1a1a;font-weight:700">合計</th>'+
+      '</tr></thead><tbody>'+
+      allMonths.map(function(m){
+        var d=monthData[m];
+        return'<tr>'+
+          '<td>'+m+'</td>'+
+          '<td style="color:#c62828">'+(d.wallet?yen(d.wallet):'-')+'</td>'+
+          '<td style="color:#c62828">'+(d.paypay?yen(d.paypay):'-')+'</td>'+
+          '<td style="color:#c62828">'+(d.suica?yen(d.suica):'-')+'</td>'+
+          '<td style="color:#c62828;font-weight:700">'+yen(d.total)+'</td>'+
+          '</tr>';
+      }).join('')+'</tbody></table>';
+    el.innerHTML=html;
+  }
+
   var totals={};
   pays.forEach(function(p){totals[p]=records.filter(function(r){return r.pay===p&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);});
   var safe=Math.max.apply(null,pays.map(function(p){return totals[p];}));safe=safe||1;
   pb.innerHTML=pays.map(function(p){return'<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span style="display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;background:'+tagBg[p]+';color:'+tagCol[p]+';font-weight:600">'+labels[p]+'</span><span style="color:#c62828">'+(totals[p]?'-'+yen(totals[p]):'-')+'</span></div><div class="bar-wrap"><div class="bar-fill" style="width:'+Math.round(totals[p]/safe*100)+'%"></div></div></div>';}).join('');
+}
+var graphOpen=false;
+function toggleGraph(){
+  graphOpen=!graphOpen;
+  var btn=document.getElementById('graph-btn');
+  var area=document.getElementById('graph-area');
+  btn.className='filter-btn'+(graphOpen?' active':'');
+  if(graphOpen){area.style.display='block';renderGraph();}
+  else{area.style.display='none';}
+}
+function renderGraph(){
+  var area=document.getElementById('graph-area');
+  var allMonths=[];
+  records.forEach(function(r){var m=fmtYM(r.date);if(allMonths.indexOf(m)===-1)allMonths.push(m);});
+  allMonths.sort();
+  if(!allMonths.length){area.innerHTML='';return;}
+  var totals=allMonths.map(function(m){
+    return records.filter(function(r){return r.type==='expense'&&fmtYM(r.date)===m;}).reduce(function(s,r){return s+r.amount;},0);
+  });
+  var maxVal=Math.max.apply(null,totals)||1;
+  var barW=44;
+  var totalW=Math.max(allMonths.length*(barW+12),300);
+  var html='<div class="card"><div style="font-size:12px;color:#888;margin-bottom:10px">月別合計支出</div>'+
+    '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;" id="graph-scroll">'+
+    '<div style="display:flex;align-items:flex-end;gap:12px;height:140px;padding:0 4px 0 4px;width:'+totalW+'px;box-sizing:border-box">';
+  allMonths.forEach(function(m,i){
+    var val=totals[i];
+    var barH=Math.max(Math.round(val/maxVal*104),val?3:0);
+    var isLast=(i===allMonths.length-1);
+    html+='<div style="width:'+barW+'px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative" class="gcol">'+
+      '<div class="gtip" style="display:none;position:absolute;top:-26px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;font-size:10px;padding:3px 7px;border-radius:6px;white-space:nowrap;z-index:10;pointer-events:none">'+yen(val)+'</div>'+
+      '<div class="gbar" style="width:55%;height:'+barH+'px;background:'+(isLast?'#333':'#aaa')+';border-radius:3px 3px 0 0;min-height:'+(val?3:0)+'px;cursor:pointer"></div>'+
+      '<div style="font-size:10px;color:'+(isLast?'#1a1a1a':'#999')+';font-weight:'+(isLast?'700':'400')+';white-space:nowrap">'+m.slice(2)+'</div>'+
+    '</div>';
+  });
+  html+='</div></div></div>';
+  area.innerHTML=html;
+
+  // 右端にスクロール
+  var sc=document.getElementById('graph-scroll');
+  if(sc)sc.scrollLeft=99999;
+
+  // ホバー＆タップでtooltip
+  area.querySelectorAll('.gcol').forEach(function(col){
+    var tip=col.querySelector('.gtip');
+    var bar=col.querySelector('.gbar');
+    if(!bar||!tip)return;
+    bar.addEventListener('mouseenter',function(){tip.style.display='block';});
+    bar.addEventListener('mouseleave',function(){tip.style.display='none';});
+    bar.addEventListener('touchstart',function(e){
+      e.preventDefault();
+      var shown=tip.style.display==='block';
+      area.querySelectorAll('.gtip').forEach(function(t){t.style.display='none';});
+      tip.style.display=shown?'none':'block';
+    },{passive:false});
+  });
 }
 function showTab(t){
   ['input','history','summary'].forEach(function(x){document.getElementById('tab-'+x).classList.toggle('active',x===t);});
