@@ -103,8 +103,8 @@ input:focus { outline: none; border-color: #555; background: #fff; }
       <div class="form-row">
         <label>種別</label>
         <div class="btn-group">
-          <button class="toggle-btn sel-income" id="btn-income" onclick="selType('income')">収入</button>
-          <button class="toggle-btn" id="btn-expense" onclick="selType('expense')">支出</button>
+          <button class="toggle-btn" id="btn-income" onclick="selType('income')">収入</button>
+          <button class="toggle-btn sel-expense" id="btn-expense" onclick="selType('expense')">支出</button>
         </div>
       </div>
       <div class="form-row">
@@ -172,7 +172,7 @@ var toAdd = SEED.filter(function(r){return existingIds.indexOf(r.id)===-1;});
 var records = existing.concat(toAdd).sort(function(a,b){return new Date(b.date)-new Date(a.date);});
 localStorage.setItem('kakeibo_v1', JSON.stringify(records));
 
-var selType_ = 'income', selPay_ = 'wallet', editingId = null, pendingId = null, filterPay = 'all';
+var selType_ = 'expense', selPay_ = 'wallet', editingId = null, pendingId = null, filterPay = 'all';
 
 function setFilter(p){
   filterPay=p;
