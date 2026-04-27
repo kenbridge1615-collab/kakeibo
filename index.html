@@ -205,7 +205,7 @@ function addRecord(){
   var amt=parseInt(document.getElementById('amount').value);
   var note=document.getElementById('note').value.trim();
   if(!amt||amt<=0){alert('金額を入力してください');return;}
-  records.unshift({id:Date.now(),type:selType_,amount:amt,pay:selPay_,note:note||'記録なし',date:new Date().toISOString()});
+  records.unshift({id:Date.now(),type:selType_,amount:amt,pay:selPay_,note:note,date:new Date().toISOString()});
   save();document.getElementById('amount').value='';document.getElementById('note').value='';
   renderRecent();renderHistory();renderSummary();renderBalance();
 }
