@@ -17,26 +17,19 @@ h1 { font-size: 22px; font-weight: 600; margin-bottom: 16px; }
 .card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 .form-row { margin-bottom: 16px; }
 .form-row label { font-size: 13px; color: #666; display: block; margin-bottom: 8px; font-weight: 500; }
-input[type=number], input[type=text], input[type=date] {
-  width: 100%; font-size: 16px; padding: 12px; border: 1px solid #ddd;
-  border-radius: 8px; background: #fafafa; color: #1a1a1a;
-  font-family: inherit; -webkit-appearance: none;
-}
+input[type=number], input[type=text], input[type=date] { width: 100%; font-size: 16px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: #fafafa; color: #1a1a1a; font-family: inherit; -webkit-appearance: none; }
 input:focus { outline: none; border-color: #555; background: #fff; }
 .btn-group { display: flex; gap: 8px; }
-.toggle-btn {
-  flex: 1; padding: 12px 8px; border: 1px solid #ddd; border-radius: 8px;
-  text-align: center; cursor: pointer; font-size: 15px; background: #f5f5f5;
-  color: #888; font-family: inherit; font-weight: 500;
-}
+.toggle-btn { flex: 1; padding: 12px 8px; border: 1px solid #ddd; border-radius: 8px; text-align: center; cursor: pointer; font-size: 15px; background: #f5f5f5; color: #888; font-family: inherit; font-weight: 500; }
 .toggle-btn.sel-income { background: #e8f5e9; color: #2e7d32; border-color: #66bb6a; }
 .toggle-btn.sel-expense { background: #ffeaea; color: #c62828; border-color: #ef9a9a; }
-.toggle-btn.sel-pay { background: #e3f2fd; color: #1565c0; border-color: #90caf9; }
-.submit-btn {
-  width: 100%; padding: 15px; background: #1a1a1a; color: #fff;
-  border: none; border-radius: 10px; font-size: 17px; font-weight: 600;
-  cursor: pointer; margin-top: 4px; font-family: inherit;
-}
+.toggle-btn.sel-wallet { background: #e8e8e8; color: #222; border-color: #888; }
+.toggle-btn.sel-paypay { background: #fff0f0; color: #cc0000; border-color: #FF0033; }
+.toggle-btn.sel-suica { background: #e0fff5; color: #007a50; border-color: #00FA9A; }
+.pay-tag-wallet { background: #555; color: #fff; }
+.pay-tag-paypay { background: #FF0033; color: #fff; }
+.pay-tag-suica { background: #00FA9A; color: #005c38; }
+.submit-btn { width: 100%; padding: 15px; background: #1a1a1a; color: #fff; border: none; border-radius: 10px; font-size: 17px; font-weight: 600; cursor: pointer; margin-top: 4px; font-family: inherit; }
 .submit-btn:active { background: #333; }
 .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
 .metric { background: #f5f5f5; border-radius: 8px; padding: 10px 8px; text-align: center; }
@@ -46,11 +39,11 @@ input:focus { outline: none; border-color: #555; background: #fff; }
 .record { padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
 .record:last-child { border-bottom: none; }
 .record-top { display: flex; align-items: flex-start; gap: 8px; }
-.record-date { font-size: 12px; color: #999; min-width: 48px; padding-top: 2px; }
+.record-date { font-size: 12px; color: #999; min-width: 48px; padding-top: 2px; line-height: 1.6; }
 .record-mid { flex: 1; min-width: 0; }
 .record-name { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .record-amount { font-size: 16px; font-weight: 600; white-space: nowrap; }
-.pay-tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; background: #e3f2fd; color: #1565c0; margin-top: 4px; }
+.pay-tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; margin-top: 4px; }
 .record-btns { display: flex; gap: 6px; margin-top: 8px; justify-content: flex-end; }
 .sm-btn { font-size: 13px; padding: 6px 12px; border-radius: 6px; cursor: pointer; border: 1px solid #ddd; background: #f5f5f5; color: #555; font-family: inherit; }
 .sm-btn.del { border-color: #ffcdd2; background: #fff8f8; color: #c62828; }
@@ -67,6 +60,11 @@ input:focus { outline: none; border-color: #555; background: #fff; }
 .sum-table tr:last-child td { border-bottom: none; }
 .bar-wrap { width: 100%; background: #f0f0f0; border-radius: 99px; height: 6px; margin-top: 6px; }
 .bar-fill { height: 6px; border-radius: 99px; background: #ef9a9a; }
+.filter-btn { font-size: 13px; padding: 7px 14px; border-radius: 99px; cursor: pointer; border: 1px solid #ddd; background: #fff; color: #888; font-family: inherit; font-weight: 500; }
+.filter-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+.filter-btn.active.f-wallet { background: #555; border-color: #555; }
+.filter-btn.active.f-paypay { background: #FF0033; border-color: #FF0033; color: #fff; }
+.filter-btn.active.f-suica { background: #00c87a; border-color: #00c87a; color: #fff; }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 100; }
 .overlay.open { display: flex; }
 .dialog { background: #fff; border-radius: 14px; padding: 20px; width: 88%; max-width: 340px; }
@@ -92,6 +90,7 @@ input:focus { outline: none; border-color: #555; background: #fff; }
 
 <div class="wrap">
   <h1>家計簿</h1>
+  <div id="balance-area" style="margin-bottom:16px"></div>
 
   <div class="tabs">
     <button class="tab active" onclick="showTab('input')">入力</button>
@@ -99,7 +98,6 @@ input:focus { outline: none; border-color: #555; background: #fff; }
     <button class="tab" onclick="showTab('summary')">集計</button>
   </div>
 
-  <!-- 入力 -->
   <div id="tab-input" class="section active">
     <div class="card">
       <div class="form-row">
@@ -116,7 +114,7 @@ input:focus { outline: none; border-color: #555; background: #fff; }
       <div class="form-row">
         <label>支払い形態</label>
         <div class="btn-group">
-          <button class="toggle-btn sel-pay" id="pay-wallet" onclick="selPay('wallet')">財布</button>
+          <button class="toggle-btn sel-wallet" id="pay-wallet" onclick="selPay('wallet')">財布</button>
           <button class="toggle-btn" id="pay-paypay" onclick="selPay('paypay')">PayPay</button>
           <button class="toggle-btn" id="pay-suica" onclick="selPay('suica')">Suica</button>
         </div>
@@ -130,15 +128,19 @@ input:focus { outline: none; border-color: #555; background: #fff; }
     <div id="recent-area"></div>
   </div>
 
-  <!-- 履歴 -->
   <div id="tab-history" class="section">
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <button class="filter-btn active" id="filter-all" onclick="setFilter('all')">すべて</button>
+      <button class="filter-btn" id="filter-wallet" onclick="setFilter('wallet')">財布</button>
+      <button class="filter-btn" id="filter-paypay" onclick="setFilter('paypay')">PayPay</button>
+      <button class="filter-btn" id="filter-suica" onclick="setFilter('suica')">Suica</button>
+    </div>
     <div class="card">
       <div class="metric-grid" id="hist-metrics"></div>
       <div id="history-list"></div>
     </div>
   </div>
 
-  <!-- 集計 -->
   <div id="tab-summary" class="section">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <span style="font-size:16px;font-weight:600">集計</span>
@@ -156,161 +158,154 @@ input:focus { outline: none; border-color: #555; background: #fff; }
 </div>
 
 <script>
-var records = JSON.parse(localStorage.getItem('kakeibo_v1') || '[]');
-var selType_ = 'income';
-var selPay_ = 'wallet';
-var editingId = null;
-var pendingId = null;
+var SEED = [{"id":1700000000000,"type":"income","amount":4901,"pay":"wallet","note":"\u30b9\u30bf\u30fc\u30c8\u6642\u70b9","date":"2026-04-18T02:24:41.000Z"},{"id":1700000000001,"type":"income","amount":7311,"pay":"paypay","note":"\u30b9\u30bf\u30fc\u30c8\u6642\u70b9","date":"2026-04-18T02:25:22.000Z"},{"id":1700000000002,"type":"income","amount":3738,"pay":"suica","note":"\u30b9\u30bf\u30fc\u30c8\u6642\u70b9","date":"2026-04-18T02:25:59.000Z"},{"id":1700000000003,"type":"expense","amount":118,"pay":"paypay","note":"\u8a18\u9332\u306a\u3057","date":"2026-04-18T10:39:53.000Z"},{"id":1700000000004,"type":"expense","amount":300,"pay":"wallet","note":"\u30c1\u30a5\u30a6\u30cb\u30ba\u30e0","date":"2026-04-18T18:45:02.000Z"},{"id":1700000000005,"type":"expense","amount":140,"pay":"paypay","note":"\u30b3\u30fc\u30e9","date":"2026-04-18T19:04:41.000Z"},{"id":1700000000006,"type":"expense","amount":814,"pay":"wallet","note":"\u30c9\u30e9\u30e2\u30ea","date":"2026-04-18T21:19:23.000Z"},{"id":1700000000007,"type":"expense","amount":751,"pay":"paypay","note":"\u304f\u308b\u307f\u524d\u30bb\u30d6\u30f3","date":"2026-04-19T08:17:37.000Z"},{"id":1700000000008,"type":"expense","amount":2000,"pay":"wallet","note":"S\u30ea\u30fc\u30b0","date":"2026-04-19T14:11:51.000Z"},{"id":1700000000009,"type":"expense","amount":559,"pay":"paypay","note":"\u30bb\u30d6\u30f3","date":"2026-04-19T15:54:16.000Z"},{"id":1700000000010,"type":"expense","amount":940,"pay":"wallet","note":"\u8a18\u9332\u306a\u3057","date":"2026-04-19T17:50:10.000Z"},{"id":1700000000011,"type":"expense","amount":210,"pay":"suica","note":"\u5730\u4e0b\u9244","date":"2026-04-20T08:33:21.000Z"},{"id":1700000000012,"type":"expense","amount":170,"pay":"wallet","note":"\u8a18\u9332\u306a\u3057","date":"2026-04-20T08:50:26.000Z"},{"id":1700000000013,"type":"expense","amount":138,"pay":"paypay","note":"\u81ea\u8ca9\u6a5f\u30b3\u30fc\u30d2\u30fc","date":"2026-04-20T12:27:41.000Z"},{"id":1700000000014,"type":"income","amount":9,"pay":"paypay","note":"\u30dd\u30a4\u30f3\u30c8","date":"2026-04-20T12:29:46.000Z"},{"id":1700000000015,"type":"expense","amount":150,"pay":"paypay","note":"\u3053\u30fc\u3072\u30fc","date":"2026-04-20T19:51:12.000Z"},{"id":1700000000016,"type":"expense","amount":140,"pay":"wallet","note":"\u3082\u308a\u3060\u3044\u306e\u3053\u30fc\u3072\u30fc","date":"2026-04-21T11:24:17.000Z"},{"id":1700000000017,"type":"expense","amount":180,"pay":"paypay","note":"\u30e8\u30fc\u30b0\u30eb\u30c8\u306e\u306e\u307f\u3082\u306e","date":"2026-04-21T18:50:59.000Z"},{"id":1700000000018,"type":"income","amount":5000,"pay":"wallet","note":"\u4ed9\u53f0\u9280\u884c","date":"2026-04-21T19:55:41.000Z"},{"id":1700000000019,"type":"expense","amount":990,"pay":"wallet","note":"\u4e8c\u90ce","date":"2026-04-21T19:56:02.000Z"},{"id":1700000000020,"type":"expense","amount":200,"pay":"wallet","note":"\u30c1\u30a5\u30a6\u30cb\u30ba\u30e0","date":"2026-04-22T17:41:25.000Z"},{"id":1700000000021,"type":"expense","amount":160,"pay":"paypay","note":"\u30d5\u30a1\u30f3\u30bf","date":"2026-04-23T11:13:00.000Z"},{"id":1700000000022,"type":"expense","amount":270,"pay":"paypay","note":"\u30de\u30c3\u30af\u30e2\u30d0\u30a4\u30eb\u30aa\u30fc\u30c0\u30fc","date":"2026-04-21T20:23:00.000Z"},{"id":1700000000023,"type":"expense","amount":150,"pay":"paypay","note":"\u3053\u30fc\u3072\u30fc","date":"2026-04-23T13:47:46.000Z"},{"id":1700000000024,"type":"income","amount":108,"pay":"paypay","note":"\u304b\u308a\u3093\u3068\u3046(\u3053\u3046\u3084)","date":"2026-04-23T18:47:50.000Z"},{"id":1700000000025,"type":"expense","amount":90,"pay":"wallet","note":"\u30b3\u30b3\u30a2","date":"2026-04-23T19:24:05.000Z"},{"id":1700000000026,"type":"expense","amount":210,"pay":"suica","note":"\u8a18\u9332\u306a\u3057","date":"2026-04-24T08:41:07.000Z"},{"id":1700000000027,"type":"expense","amount":150,"pay":"paypay","note":"\u5206\u9928\u30b3\u30fc\u30d2\u30fc","date":"2026-04-24T15:32:51.000Z"},{"id":1700000000028,"type":"expense","amount":210,"pay":"suica","note":"\u8a18\u9332\u306a\u3057","date":"2026-04-24T17:01:09.000Z"},{"id":1700000000029,"type":"expense","amount":210,"pay":"paypay","note":"\u30b9\u30d1\u30a4\u30b7\u30fc\u30c1\u30ad\u30f3","date":"2026-04-24T17:38:39.000Z"},{"id":1700000000030,"type":"expense","amount":100,"pay":"wallet","note":"\u30c1\u30a5\u30a6\u30cb\u30ba\u30e0","date":"2026-04-25T00:44:52.000Z"},{"id":1700000000031,"type":"expense","amount":1030,"pay":"wallet","note":"\u6cb9\u305d\u3070","date":"2026-04-25T00:45:06.000Z"},{"id":1700000000032,"type":"expense","amount":146,"pay":"paypay","note":"\u7f36\u30b3\u30fc\u30e9","date":"2026-04-24T23:59:00.000Z"},{"id":1700000000033,"type":"expense","amount":300,"pay":"wallet","note":"\u3061\u3085\u3046\u306b\u305a\u3080","date":"2026-04-25T19:25:39.000Z"},{"id":1700000000034,"type":"expense","amount":604,"pay":"paypay","note":"\u30ab\u30c3\u30d7\u9ea6\u30b0\u30ec\u30d5\u30eb\u30b5\u30ef\u30fc\u306a\u3069","date":"2026-04-26T00:35:05.000Z"},{"id":1700000000035,"type":"expense","amount":880,"pay":"wallet","note":"\u6b4c\u5e83","date":"2026-04-27T02:21:33.000Z"},{"id":1700000000036,"type":"expense","amount":230,"pay":"paypay","note":"\u3082\u3093\u3059\u305f\u30fc","date":"2026-04-27T03:10:53.000Z"},{"id":1700000000037,"type":"expense","amount":210,"pay":"suica","note":"\u3061\u304b\u3066\u3064","date":"2026-04-27T08:36:46.000Z"},{"id":1700000000038,"type":"expense","amount":130,"pay":"paypay","note":"\u30b3\u30fc\u30d2\u30fc","date":"2026-04-27T08:37:29.000Z"},{"id":1700000000039,"type":"expense","amount":280,"pay":"paypay","note":"\u304b\u3058\u3055\u3093\u3078\u9001\u91d1","date":"2026-04-27T08:52:06.000Z"},{"id":1700000000040,"type":"expense","amount":100,"pay":"wallet","note":"\u3061\u3085\u3046\u306b","date":"2026-04-26T22:30:00.000Z"}];
 
-function save() { try { localStorage.setItem('kakeibo_v1', JSON.stringify(records)); } catch(e) {} }
+var existing = JSON.parse(localStorage.getItem('kakeibo_v1') || '[]');
+var existingIds = existing.map(function(r){return r.id;});
+var toAdd = SEED.filter(function(r){return existingIds.indexOf(r.id)===-1;});
+var records = existing.concat(toAdd).sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+localStorage.setItem('kakeibo_v1', JSON.stringify(records));
 
-function selType(t) {
-  selType_ = t;
-  document.getElementById('btn-income').className = 'toggle-btn' + (t==='income'?' sel-income':'');
-  document.getElementById('btn-expense').className = 'toggle-btn' + (t==='expense'?' sel-expense':'');
-}
-function selPay(p) {
-  selPay_ = p;
-  ['wallet','paypay','suica'].forEach(function(x) {
-    document.getElementById('pay-'+x).className = 'toggle-btn' + (x===p?' sel-pay':'');
+var selType_ = 'income', selPay_ = 'wallet', editingId = null, pendingId = null, filterPay = 'all';
+
+function setFilter(p){
+  filterPay=p;
+  ['all','wallet','paypay','suica'].forEach(function(x){
+    var btn=document.getElementById('filter-'+x);
+    btn.className='filter-btn'+(x===p?' active f-'+x:'');
   });
+  renderHistory();
 }
 
-function addRecord() {
-  var amt = parseInt(document.getElementById('amount').value);
-  var note = document.getElementById('note').value.trim();
-  if (!amt || amt <= 0) { alert('金額を入力してください'); return; }
-  records.unshift({ id: Date.now(), type: selType_, amount: amt, pay: selPay_, note: note || '記録なし', date: new Date().toISOString() });
-  save();
-  document.getElementById('amount').value = '';
-  document.getElementById('note').value = '';
-  renderRecent(); renderHistory(); renderSummary();
+function save(){try{localStorage.setItem('kakeibo_v1',JSON.stringify(records));}catch(e){}}
+function selType(t){selType_=t;document.getElementById('btn-income').className='toggle-btn'+(t==='income'?' sel-income':'');document.getElementById('btn-expense').className='toggle-btn'+(t==='expense'?' sel-expense':'');}
+function selPay(p){selPay_=p;['wallet','paypay','suica'].forEach(function(x){document.getElementById('pay-'+x).className='toggle-btn'+(x===p?' sel-'+x:'');});}
+function renderBalance(){
+  var pays=['wallet','paypay','suica'];
+  var labels={wallet:'財布',paypay:'PayPay',suica:'Suica'};
+  var tagBg={wallet:'#555',paypay:'#FF0033',suica:'#00FA9A'};
+  var tagCol={wallet:'#fff',paypay:'#fff',suica:'#005c38'};
+  var html='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">';
+  pays.forEach(function(p){
+    var inc=records.filter(function(r){return r.pay===p&&r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
+    var exp=records.filter(function(r){return r.pay===p&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
+    var bal=inc-exp;
+    var balCol=bal>=0?'#2e7d32':'#c62828';
+    html+='<div style="background:#fff;border-radius:12px;padding:12px 10px;box-shadow:0 1px 3px rgba(0,0,0,0.08);text-align:center">'+
+      '<span style="display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;background:'+tagBg[p]+';color:'+tagCol[p]+';font-weight:600;margin-bottom:8px">'+labels[p]+'</span>'+
+      '<div style="font-size:18px;font-weight:700;color:'+balCol+'">'+(bal>=0?'+':'')+yen(bal)+'</div>'+
+      '<div style="font-size:10px;color:#aaa;margin-top:4px">収入 '+yen(inc)+'</div>'+
+      '<div style="font-size:10px;color:#aaa">支出 '+yen(exp)+'</div>'+
+    '</div>';
+  });
+  html+='</div>';
+  document.getElementById('balance-area').innerHTML=html;
 }
-
-function askDelete(id) {
-  var r = records.find(function(r){return r.id===id;});
-  if (!r) return;
-  pendingId = id;
-  var ts = fmt(r.date);
-  document.getElementById('dlg-desc').textContent = ts.date + ' ' + ts.time + '  ' + r.note + '  ' + (r.type==='income'?'+':'-') + yen(r.amount);
+function addRecord(){
+  var amt=parseInt(document.getElementById('amount').value);
+  var note=document.getElementById('note').value.trim();
+  if(!amt||amt<=0){alert('金額を入力してください');return;}
+  records.unshift({id:Date.now(),type:selType_,amount:amt,pay:selPay_,note:note||'記録なし',date:new Date().toISOString()});
+  save();document.getElementById('amount').value='';document.getElementById('note').value='';
+  renderRecent();renderHistory();renderSummary();renderBalance();
+}
+function askDelete(id){
+  var r=records.find(function(r){return r.id===id;});if(!r)return;
+  pendingId=id;var ts=fmt(r.date);
+  document.getElementById('dlg-desc').textContent=ts.date+' '+ts.time+'  '+r.note+'  '+(r.type==='income'?'+':'-')+yen(r.amount);
   document.getElementById('overlay').classList.add('open');
 }
-function closeDialog() { pendingId=null; document.getElementById('overlay').classList.remove('open'); }
-function confirmDelete() {
-  if (!pendingId) return;
-  records = records.filter(function(r){return r.id!==pendingId;});
-  pendingId=null;
-  document.getElementById('overlay').classList.remove('open');
-  save(); renderRecent(); renderHistory(); renderSummary();
+function closeDialog(){pendingId=null;document.getElementById('overlay').classList.remove('open');}
+function confirmDelete(){
+  if(!pendingId)return;
+  records=records.filter(function(r){return r.id!==pendingId;});
+  pendingId=null;document.getElementById('overlay').classList.remove('open');
+  save();renderRecent();renderHistory();renderSummary();renderBalance();
 }
-
-function toggleEdit(id) { editingId = editingId===id ? null : id; renderHistory(); }
-function saveDate(id) {
-  var input = document.getElementById('di-'+id);
-  if (!input||!input.value) return;
-  var r = records.find(function(r){return r.id===id;});
-  if (!r) return;
-  var orig = new Date(r.date);
-  var parts = input.value.split('-').map(Number);
-  orig.setFullYear(parts[0]); orig.setMonth(parts[1]-1); orig.setDate(parts[2]);
-  r.date = orig.toISOString();
-  editingId=null;
-  save(); renderRecent(); renderHistory(); renderSummary();
+function toggleEdit(id){editingId=editingId===id?null:id;renderHistory();}
+function saveDate(id){
+  var input=document.getElementById('di-'+id);if(!input||!input.value)return;
+  var r=records.find(function(r){return r.id===id;});if(!r)return;
+  var orig=new Date(r.date);var parts=input.value.split('-').map(Number);
+  orig.setFullYear(parts[0]);orig.setMonth(parts[1]-1);orig.setDate(parts[2]);
+  r.date=orig.toISOString();editingId=null;save();renderRecent();renderHistory();renderSummary();renderBalance();
 }
-function toDateVal(iso) {
-  var d=new Date(iso);
-  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
-}
+function toDateVal(iso){var d=new Date(iso);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
 function pad(n){return String(n).padStart(2,'0');}
-function fmt(iso) {
-  var d=new Date(iso);
-  return { date:(d.getMonth()+1)+'/'+d.getDate(), time:pad(d.getHours())+':'+pad(d.getMinutes()) };
-}
+function fmt(iso){var d=new Date(iso);return{date:(d.getMonth()+1)+'/'+d.getDate(),time:pad(d.getHours())+':'+pad(d.getMinutes())};}
 function fmtYM(iso){var d=new Date(iso);return d.getFullYear()+'/'+pad(d.getMonth()+1);}
 function fmtDay(iso){var d=new Date(iso);return d.getFullYear()+'/'+pad(d.getMonth()+1)+'/'+pad(d.getDate());}
-function payLbl(p){return {wallet:'財布',paypay:'PayPay',suica:'Suica'}[p]||p;}
+function payLbl(p){return{wallet:'財布',paypay:'PayPay',suica:'Suica'}[p]||p;}
+function payTag(p){return'<span class="pay-tag pay-tag-'+p+'">'+payLbl(p)+'</span>';}
 function yen(n){return '\u00a5'+Math.abs(n).toLocaleString();}
 
-function recordHTML(r, showBtns) {
-  var ts=fmt(r.date);
-  var isEdit = editingId===r.id;
-  var col = r.type==='income'?'#2e7d32':'#c62828';
-  var sign = r.type==='income'?'+':'-';
-  var html = '<div class="record"><div class="record-top">' +
-    '<div class="record-date">'+ts.date+'<br><span style="font-size:11px;color:#bbb">'+ts.time+'</span></div>' +
-    '<div class="record-mid"><div class="record-name">'+r.note+'</div><span class="pay-tag">'+payLbl(r.pay)+'</span></div>' +
-    '<div class="record-amount" style="color:'+col+'">'+sign+yen(r.amount)+'</div>' +
-    '</div>';
-  if (showBtns) {
-    html += '<div class="record-btns"><button class="sm-btn" onclick="toggleEdit('+r.id+')">日付修正</button><button class="sm-btn del" onclick="askDelete('+r.id+')">削除</button></div>';
-    if (isEdit) {
-      html += '<div class="edit-row"><span style="font-size:13px;color:#666">日付：</span><input type="date" id="di-'+r.id+'" value="'+toDateVal(r.date)+'" /><button class="save-btn" onclick="saveDate('+r.id+')">保存</button><button class="cncl-btn" onclick="toggleEdit('+r.id+')">取消</button></div>';
-    }
+function recordHTML(r,showBtns){
+  var ts=fmt(r.date),isEdit=editingId===r.id,col=r.type==='income'?'#2e7d32':'#c62828',sign=r.type==='income'?'+':'-';
+  var bg=r.type==='income'?'background:#f0fff4;margin:0 -16px;padding:0 16px;border-radius:8px;':'';
+  var html='<div class="record" style="'+bg+'"><div class="record-top">'+
+    '<div class="record-date">'+ts.date+'<br><span style="font-size:11px;color:#bbb">'+ts.time+'</span></div>'+
+    '<div class="record-mid"><div class="record-name">'+r.note+'</div>'+payTag(r.pay)+'</div>'+
+    '<div class="record-amount" style="color:'+col+'">'+sign+yen(r.amount)+'</div></div>';
+  if(showBtns){
+    html+='<div class="record-btns"><button class="sm-btn" onclick="toggleEdit('+r.id+')">日付修正</button><button class="sm-btn del" onclick="askDelete('+r.id+')">削除</button></div>';
+    if(isEdit)html+='<div class="edit-row"><span style="font-size:13px;color:#666">日付：</span><input type="date" id="di-'+r.id+'" value="'+toDateVal(r.date)+'" /><button class="save-btn" onclick="saveDate('+r.id+')">保存</button><button class="cncl-btn" onclick="toggleEdit('+r.id+')">取消</button></div>';
   }
-  html += '</div>';
-  return html;
+  return html+'</div>';
 }
-
-function renderRecent() {
-  var el=document.getElementById('recent-area');
-  if (!records.length){el.innerHTML='';return;}
-  el.innerHTML='<div style="font-size:13px;color:#888;margin-bottom:8px;font-weight:500">最近の記録</div><div class="card">'+
-    records.slice(0,5).map(function(r){return recordHTML(r,false);}).join('')+'</div>';
+function renderRecent(){
+  var el=document.getElementById('recent-area');if(!records.length){el.innerHTML='';return;}
+  el.innerHTML='<div style="font-size:13px;color:#888;margin-bottom:8px;font-weight:500">最近の記録</div><div class="card">'+records.slice(0,5).map(function(r){return recordHTML(r,false);}).join('')+'</div>';
 }
-function renderHistory() {
-  var el=document.getElementById('history-list');
-  var met=document.getElementById('hist-metrics');
-  if (!records.length){el.innerHTML='<div class="empty">まだ記録がありません</div>';met.innerHTML='';return;}
-  var inc=records.filter(function(r){return r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
-  var exp=records.filter(function(r){return r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
+function renderHistory(){
+  var el=document.getElementById('history-list'),met=document.getElementById('hist-metrics');
+  if(!records.length){el.innerHTML='<div class="empty">まだ記録がありません</div>';met.innerHTML='';return;}
+  var filtered=filterPay==='all'?records:records.filter(function(r){return r.pay===filterPay;});
+  var inc=filtered.filter(function(r){return r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
+  var exp=filtered.filter(function(r){return r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
   var bal=inc-exp;
-  met.innerHTML=
-    '<div class="metric"><div class="metric-label">収入</div><div class="metric-value" style="color:#2e7d32">'+yen(inc)+'</div></div>'+
+  met.innerHTML='<div class="metric"><div class="metric-label">収入</div><div class="metric-value" style="color:#2e7d32">'+yen(inc)+'</div></div>'+
     '<div class="metric"><div class="metric-label">支出</div><div class="metric-value" style="color:#c62828">'+yen(exp)+'</div></div>'+
     '<div class="metric"><div class="metric-label">収支</div><div class="metric-value" style="color:'+(bal>=0?'#2e7d32':'#c62828')+'">'+(bal>=0?'+':'')+yen(bal)+'</div></div>';
-  el.innerHTML=records.map(function(r){return recordHTML(r,true);}).join('');
+  el.innerHTML=filtered.length?filtered.map(function(r){return recordHTML(r,true);}).join(''):'<div class="empty">記録がありません</div>';
 }
-function renderSummary() {
-  var mode=document.getElementById('sum-mode').value;
-  var el=document.getElementById('sum-content');
-  var pb=document.getElementById('pay-break');
-  if (!records.length){el.innerHTML='<div class="empty">まだ記録がありません</div>';pb.innerHTML='';return;}
+function renderSummary(){
+  var mode=document.getElementById('sum-mode').value,el=document.getElementById('sum-content'),pb=document.getElementById('pay-break');
+  if(!records.length){el.innerHTML='<div class="empty">まだ記録がありません</div>';pb.innerHTML='';return;}
   var keyFn=mode==='day'?fmtDay:fmtYM;
-  var grouped={};
-  records.forEach(function(r){
-    var k=keyFn(r.date);
-    if(!grouped[k])grouped[k]={inc:0,exp:0};
-    if(r.type==='income')grouped[k].inc+=r.amount;
-    else grouped[k].exp+=r.amount;
-  });
-  var keys=Object.keys(grouped).sort().reverse();
-  el.innerHTML='<table class="sum-table"><thead><tr><th>'+(mode==='day'?'日付':'年月')+'</th><th>収入</th><th>支出</th><th>収支</th></tr></thead><tbody>'+
-    keys.map(function(k){
-      var bal=grouped[k].inc-grouped[k].exp;
-      return '<tr><td>'+k+'</td><td style="color:#2e7d32">'+(grouped[k].inc?'+'+yen(grouped[k].inc):'-')+'</td><td style="color:#c62828">'+(grouped[k].exp?'-'+yen(grouped[k].exp):'-')+'</td><td style="color:'+(bal>=0?'#2e7d32':'#c62828')+';font-weight:600">'+(bal>=0?'+':'')+yen(bal)+'</td></tr>';
-    }).join('')+'</tbody></table>';
   var pays=['wallet','paypay','suica'];
+  var labels={wallet:'財布',paypay:'PayPay',suica:'Suica'};
+  var tagBg={wallet:'#555',paypay:'#FF0033',suica:'#00FA9A'};
+  var tagCol={wallet:'#fff',paypay:'#fff',suica:'#005c38'};
+  var html='';
+  pays.forEach(function(p){
+    var grouped={};
+    records.filter(function(r){return r.pay===p;}).forEach(function(r){
+      var k=keyFn(r.date);
+      if(!grouped[k])grouped[k]={inc:0,exp:0};
+      if(r.type==='income')grouped[k].inc+=r.amount;
+      else grouped[k].exp+=r.amount;
+    });
+    var keys=Object.keys(grouped).sort().reverse();
+    if(!keys.length)return;
+    html+='<div style="margin-bottom:20px">'+
+      '<div style="margin-bottom:8px"><span style="display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;background:'+tagBg[p]+';color:'+tagCol[p]+';font-weight:600">'+labels[p]+'</span></div>'+
+      '<table class="sum-table"><thead><tr><th>'+(mode==='day'?'日付':'年月')+'</th><th>収入</th><th>支出</th><th>収支</th></tr></thead><tbody>'+
+      keys.map(function(k){
+        var bal=grouped[k].inc-grouped[k].exp;
+        return'<tr><td>'+k+'</td><td style="color:#2e7d32">'+(grouped[k].inc?'+'+yen(grouped[k].inc):'-')+'</td><td style="color:#c62828">'+(grouped[k].exp?'-'+yen(grouped[k].exp):'-')+'</td><td style="color:'+(bal>=0?'#2e7d32':'#c62828')+';font-weight:600">'+(bal>=0?'+':'')+yen(bal)+'</td></tr>';
+      }).join('')+'</tbody></table></div>';
+  });
+  el.innerHTML=html||'<div class="empty">まだ記録がありません</div>';
   var totals={};
   pays.forEach(function(p){totals[p]=records.filter(function(r){return r.pay===p&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);});
-  var mx=Math.max.apply(null,pays.map(function(p){return totals[p];}));
-  var safe=mx||1;
-  pb.innerHTML=pays.map(function(p){
-    return '<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span style="color:#666">'+payLbl(p)+'</span><span style="color:#c62828">'+(totals[p]?'-'+yen(totals[p]):'-')+'</span></div><div class="bar-wrap"><div class="bar-fill" style="width:'+Math.round(totals[p]/safe*100)+'%"></div></div></div>';
-  }).join('');
+  var safe=Math.max.apply(null,pays.map(function(p){return totals[p];}));safe=safe||1;
+  pb.innerHTML=pays.map(function(p){return'<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span style="display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;background:'+tagBg[p]+';color:'+tagCol[p]+';font-weight:600">'+labels[p]+'</span><span style="color:#c62828">'+(totals[p]?'-'+yen(totals[p]):'-')+'</span></div><div class="bar-wrap"><div class="bar-fill" style="width:'+Math.round(totals[p]/safe*100)+'%"></div></div></div>';}).join('');
 }
-
-function showTab(t) {
-  ['input','history','summary'].forEach(function(x){
-    document.getElementById('tab-'+x).classList.toggle('active',x===t);
-  });
-  document.querySelectorAll('.tab').forEach(function(el,i){
-    el.classList.toggle('active',['input','history','summary'][i]===t);
-  });
-  if(t==='history')renderHistory();
-  if(t==='summary')renderSummary();
+function showTab(t){
+  ['input','history','summary'].forEach(function(x){document.getElementById('tab-'+x).classList.toggle('active',x===t);});
+  document.querySelectorAll('.tab').forEach(function(el,i){el.classList.toggle('active',['input','history','summary'][i]===t);});
+  if(t==='history')renderHistory();if(t==='summary')renderSummary();
 }
-
-renderRecent();
-</script>
+renderRecent();renderBalance();</script>
 </body>
 </html>
