@@ -155,7 +155,7 @@ input:focus { outline: none; border-color: #555; background: #fff; }
       <div id="pay-break"></div>
     </div>
   </div>
-  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 1.0</div>
+  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 1.1</div>
 </div>
 
 <script>
@@ -194,7 +194,7 @@ function renderBalance(){
     var balCol=bal>=0?'#2e7d32':'#c62828';
     html+='<div style="background:#fff;border-radius:12px;padding:12px 10px;box-shadow:0 1px 3px rgba(0,0,0,0.08);text-align:center">'+
       '<span style="display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;background:'+tagBg[p]+';color:'+tagCol[p]+';font-weight:600;margin-bottom:8px">'+labels[p]+'</span>'+
-      '<div style="font-size:18px;font-weight:700;color:'+balCol+'">'+(bal>=0?'+':'')+yen(bal)+'</div>'+
+      '<div style="font-size:18px;font-weight:700;color:'+balCol+'">'+yen(bal)+'</div>'+
       '<div style="font-size:10px;color:#aaa;margin-top:4px">収入 '+yen(inc)+'</div>'+
       '<div style="font-size:10px;color:#aaa">支出 '+yen(exp)+'</div>'+
     '</div>';
