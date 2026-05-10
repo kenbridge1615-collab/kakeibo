@@ -10,7 +10,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragin
 .wrap { max-width: 480px; margin: 0 auto; padding: 16px; }
 h1 { font-size: 22px; font-weight: 600; margin-bottom: 16px; }
 .tabs { display: flex; border-bottom: 1px solid #ddd; margin-bottom: 16px; background: #fff; border-radius: 10px 10px 0 0; overflow: hidden; }
-.tab { flex: 1; padding: 14px 4px; font-size: 15px; cursor: pointer; border: none; background: none; color: #888; text-align: center; font-family: inherit; }
+.tab { flex: 1; padding: 12px 2px; font-size: 13px; cursor: pointer; border: none; background: none; color: #888; text-align: center; font-family: inherit; }
 .tab.active { color: #1a1a1a; font-weight: 600; border-bottom: 2px solid #1a1a1a; }
 .section { display: none; }
 .section.active { display: block; }
@@ -26,12 +26,16 @@ input:focus { outline: none; border-color: #555; background: #fff; }
 .toggle-btn.sel-wallet { background: #e8e8e8; color: #222; border-color: #888; }
 .toggle-btn.sel-paypay { background: #fff0f0; color: #cc0000; border-color: #FF0033; }
 .toggle-btn.sel-suica { background: #e0fff5; color: #007a50; border-color: #00FA9A; }
+.toggle-btn.sel-bank { background: #fff8e1; color: #f57f17; border-color: #ffca28; }
+.toggle-btn.sel-transfer { background: #f0f0ff; color: #3949ab; border-color: #7986cb; }
+.pay-tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; margin-top: 4px; }
 .pay-tag-wallet { background: #555; color: #fff; }
 .pay-tag-paypay { background: #FF0033; color: #fff; }
 .pay-tag-suica { background: #00FA9A; color: #005c38; }
+.pay-tag-bank { background: #ffca28; color: #5f4000; }
 .submit-btn { width: 100%; padding: 15px; background: #1a1a1a; color: #fff; border: none; border-radius: 10px; font-size: 17px; font-weight: 600; cursor: pointer; margin-top: 4px; font-family: inherit; }
 .submit-btn:active { background: #333; }
-.metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; grid-template-rows: auto auto; }
 .metric { background: #f5f5f5; border-radius: 8px; padding: 10px 8px; text-align: center; }
 .metric-label { font-size: 11px; color: #888; margin-bottom: 4px; }
 .metric-value { font-size: 16px; font-weight: 600; }
@@ -43,7 +47,6 @@ input:focus { outline: none; border-color: #555; background: #fff; }
 .record-mid { flex: 1; min-width: 0; }
 .record-name { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .record-amount { font-size: 16px; font-weight: 600; white-space: nowrap; }
-.pay-tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; margin-top: 4px; }
 .record-btns { display: flex; gap: 6px; margin-top: 8px; justify-content: flex-end; }
 .sm-btn { font-size: 13px; padding: 6px 12px; border-radius: 6px; cursor: pointer; border: 1px solid #ddd; background: #f5f5f5; color: #555; font-family: inherit; }
 .sm-btn.del { border-color: #ffcdd2; background: #fff8f8; color: #c62828; }
@@ -51,6 +54,11 @@ input:focus { outline: none; border-color: #555; background: #fff; }
 .edit-row input[type=date] { flex: 1; min-width: 130px; }
 .save-btn { font-size: 14px; padding: 8px 14px; background: #1a1a1a; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; }
 .cncl-btn { font-size: 14px; padding: 8px 14px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; color: #666; font-family: inherit; }
+.filter-btn { font-size: 13px; padding: 7px 14px; border-radius: 99px; cursor: pointer; border: 1px solid #ddd; background: #fff; color: #888; font-family: inherit; font-weight: 500; }
+.filter-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+.filter-btn.active.f-wallet { background: #555; border-color: #555; }
+.filter-btn.active.f-paypay { background: #FF0033; border-color: #FF0033; }
+.filter-btn.active.f-suica { background: #00c87a; border-color: #00c87a; }
 .period-sel { font-size: 15px; padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; background: #f5f5f5; color: #1a1a1a; font-family: inherit; }
 .sum-table { width: 100%; font-size: 13px; border-collapse: collapse; table-layout: fixed; }
 .sum-table th { font-weight: 600; color: #888; text-align: right; padding: 8px 6px; border-bottom: 1px solid #eee; font-size: 12px; }
@@ -60,11 +68,13 @@ input:focus { outline: none; border-color: #555; background: #fff; }
 .sum-table tr:last-child td { border-bottom: none; }
 .bar-wrap { width: 100%; background: #f0f0f0; border-radius: 99px; height: 6px; margin-top: 6px; }
 .bar-fill { height: 6px; border-radius: 99px; background: #ef9a9a; }
-.filter-btn { font-size: 13px; padding: 7px 14px; border-radius: 99px; cursor: pointer; border: 1px solid #ddd; background: #fff; color: #888; font-family: inherit; font-weight: 500; }
-.filter-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
-.filter-btn.active.f-wallet { background: #555; border-color: #555; }
-.filter-btn.active.f-paypay { background: #FF0033; border-color: #FF0033; color: #fff; }
-.filter-btn.active.f-suica { background: #00c87a; border-color: #00c87a; color: #fff; }
+.transfer-row { display:flex; align-items:center; gap:8px; padding:10px 0; border-bottom:1px solid #f0f0f0; font-size:13px; }
+.transfer-row:last-child { border-bottom:none; }
+.transfer-amt { font-weight:600; color:#3949ab; white-space:nowrap; }
+.transfer-del { background:none; border:none; color:#ccc; cursor:pointer; font-size:13px; padding:4px 6px; border-radius:4px; margin-left:auto; }
+.transfer-del:hover { color:#c62828; background:#fff8f8; }
+.mf-btn { font-size: 13px; padding: 7px 14px; border-radius: 99px; cursor: pointer; border: 1px solid #ddd; background: #fff; color: #888; font-family: inherit; }
+.mf-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 100; }
 .overlay.open { display: flex; }
 .dialog { background: #fff; border-radius: 14px; padding: 20px; width: 88%; max-width: 340px; }
@@ -88,16 +98,67 @@ input:focus { outline: none; border-color: #555; background: #fff; }
   </div>
 </div>
 
+<!-- 設定モーダル -->
+<div id="settings-overlay" class="overlay" onclick="if(event.target===this)closeSettings()">
+  <div class="dialog" style="width:92%;max-width:400px;max-height:80vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="dialog-title" style="margin:0">設定</div>
+      <button onclick="closeSettings()" style="background:none;border:none;font-size:22px;color:#aaa;cursor:pointer;line-height:1">×</button>
+    </div>
+
+    <!-- 初期残高 -->
+    <div style="font-size:13px;font-weight:600;color:#555;margin-bottom:8px">初期残高の設定</div>
+    <div style="font-size:12px;color:#aaa;margin-bottom:12px">設定すると「スタート時点」として収入記録が自動で追加されます。一度だけ設定してください。</div>
+    <div class="form-row">
+      <label>財布</label>
+      <input type="number" id="init-wallet" placeholder="例: 3000" inputmode="numeric" />
+    </div>
+    <div class="form-row">
+      <label>PayPay</label>
+      <input type="number" id="init-paypay" placeholder="例: 5000" inputmode="numeric" />
+    </div>
+    <div class="form-row">
+      <label>Suica</label>
+      <input type="number" id="init-suica" placeholder="例: 1000" inputmode="numeric" />
+    </div>
+    <button onclick="applyInitBalance()" style="width:100%;padding:11px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;margin-bottom:20px">初期残高を設定する</button>
+
+    <!-- 銀行口座 -->
+    <div style="font-size:13px;font-weight:600;color:#555;margin-bottom:8px">銀行口座の管理</div>
+    <div style="font-size:12px;color:#aaa;margin-bottom:12px">口座を登録すると残高カードと入力フォームに反映されます</div>
+    <div id="settings-bank-list" style="margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px;margin-bottom:4px">
+      <input type="text" id="new-bank-name" placeholder="口座名（例：仙台銀行）" style="flex:1;font-size:15px;padding:10px" />
+      <input type="number" id="new-bank-amount" placeholder="初期残高" inputmode="numeric" style="width:110px;font-size:15px;padding:10px" />
+    </div>
+    <button onclick="addBankAccount()" style="width:100%;padding:11px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;margin-top:6px">＋ 口座を追加</button>
+
+    <!-- データクリア -->
+    <div style="font-size:13px;font-weight:600;color:#555;margin:20px 0 8px">データの管理</div>
+    <div style="font-size:12px;color:#aaa;margin-bottom:12px">CSVインポート前などにデータをクリアできます。この操作は元に戻せません。</div>
+    <button onclick="clearAllData()" style="width:100%;padding:11px;background:#fff8f8;color:#c62828;border:1px solid #ffcdd2;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit">収支データをすべてクリア</button>
+  </div>
+</div>
+
 <div class="wrap">
-  <h1>家計簿</h1>
-  <div id="balance-area" style="margin-bottom:16px"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <h1 style="margin:0">家計簿</h1>
+    <button onclick="openSettings()" style="background:#f5f5f5;border:1px solid #ddd;border-radius:8px;padding:7px 14px;font-size:13px;color:#555;cursor:pointer;font-family:inherit">設定</button>
+  </div>
 
   <div class="tabs">
-    <button class="tab active" onclick="showTab('input')">入力</button>
+    <button class="tab active" onclick="showTab('balance')">残高</button>
+    <button class="tab" onclick="showTab('input')">入力</button>
     <button class="tab" onclick="showTab('history')">履歴</button>
     <button class="tab" onclick="showTab('summary')">集計</button>
   </div>
 
+  <!-- 残高 -->
+  <div id="tab-balance" class="section active">
+    <div id="balance-area"></div>
+  </div>
+
+  <!-- 入力 -->
   <div id="tab-input" class="section active">
     <div class="card">
       <div class="form-row">
@@ -105,42 +166,95 @@ input:focus { outline: none; border-color: #555; background: #fff; }
         <div class="btn-group">
           <button class="toggle-btn" id="btn-income" onclick="selType('income')">収入</button>
           <button class="toggle-btn sel-expense" id="btn-expense" onclick="selType('expense')">支出</button>
+          <button class="toggle-btn" id="btn-transfer" onclick="selType('transfer')">移動</button>
         </div>
       </div>
-      <div class="form-row">
-        <label>金額（円）</label>
-        <input type="number" id="amount" placeholder="例: 1500" inputmode="numeric" />
-      </div>
-      <div class="form-row">
-        <label>支払い形態</label>
-        <div class="btn-group">
-          <button class="toggle-btn sel-wallet" id="pay-wallet" onclick="selPay('wallet')">財布</button>
-          <button class="toggle-btn" id="pay-paypay" onclick="selPay('paypay')">PayPay</button>
-          <button class="toggle-btn" id="pay-suica" onclick="selPay('suica')">Suica</button>
+      <!-- 収入・支出フォーム -->
+      <div id="form-normal">
+        <div class="form-row">
+          <label>金額（円）</label>
+          <input type="number" id="amount" placeholder="例: 1500" inputmode="numeric" />
         </div>
+        <div class="form-row">
+          <label>支払い形態</label>
+          <div class="btn-group" style="margin-bottom:8px">
+            <button class="toggle-btn" id="pay-bank" onclick="selPay('bank')">銀行</button>
+          </div>
+          <div id="bank-account-select" style="display:none;margin-bottom:8px">
+            <div class="btn-group" id="bank-account-btns" style="flex-wrap:wrap;gap:8px"></div>
+          </div>
+          <div class="btn-group">
+            <button class="toggle-btn sel-wallet" id="pay-wallet" onclick="selPay('wallet')">財布</button>
+            <button class="toggle-btn" id="pay-paypay" onclick="selPay('paypay')">PayPay</button>
+            <button class="toggle-btn" id="pay-suica" onclick="selPay('suica')">Suica</button>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>内容</label>
+          <input type="text" id="note" placeholder="例: コンビニでコーヒー" />
+        </div>
+        <button class="submit-btn" onclick="addRecord()">記録する</button>
       </div>
-      <div class="form-row">
-        <label>内容</label>
-        <input type="text" id="note" placeholder="例: コンビニでコーヒー" />
+      <!-- 移動フォーム -->
+      <div id="form-transfer" style="display:none">
+        <div class="form-row">
+          <label>金額（円）</label>
+          <input type="number" id="tr-amount" placeholder="例: 3000" inputmode="numeric" />
+        </div>
+        <div class="form-row">
+          <label>移動元</label>
+          <div class="btn-group" style="margin-bottom:8px">
+            <button class="toggle-btn sel-bank" id="tr-from-bank" onclick="selFrom('bank')">銀行</button>
+          </div>
+          <div id="tr-bank-account-select" style="margin-bottom:8px;display:none;flex-wrap:wrap;gap:8px"></div>
+          <div class="btn-group">
+            <button class="toggle-btn" id="tr-from-wallet" onclick="selFrom('wallet')">財布</button>
+            <button class="toggle-btn" id="tr-from-paypay" onclick="selFrom('paypay')">PayPay</button>
+            <button class="toggle-btn" id="tr-from-suica" onclick="selFrom('suica')">Suica</button>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>移動先</label>
+          <div class="btn-group">
+            <button class="toggle-btn" id="tr-to-wallet" onclick="selTo('wallet')">財布</button>
+            <button class="toggle-btn sel-paypay" id="tr-to-paypay" onclick="selTo('paypay')">PayPay</button>
+            <button class="toggle-btn" id="tr-to-suica" onclick="selTo('suica')">Suica</button>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>メモ（任意）</label>
+          <input type="text" id="tr-note" placeholder="例: PayPayにチャージ" />
+        </div>
+        <button class="submit-btn" style="background:#555" onclick="addTransfer()">移動を記録する</button>
       </div>
-      <button class="submit-btn" onclick="addRecord()">記録する</button>
     </div>
     <div id="recent-area"></div>
   </div>
 
+  <!-- 履歴 -->
   <div id="tab-history" class="section">
-    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-      <button class="filter-btn active" id="filter-all" onclick="setFilter('all')">すべて</button>
-      <button class="filter-btn" id="filter-wallet" onclick="setFilter('wallet')">財布</button>
-      <button class="filter-btn" id="filter-paypay" onclick="setFilter('paypay')">PayPay</button>
-      <button class="filter-btn" id="filter-suica" onclick="setFilter('suica')">Suica</button>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="filter-btn active" id="hist-tab-records" onclick="setHistTab('records')" style="flex:1;text-align:center">収支履歴</button>
+      <button class="filter-btn" id="hist-tab-transfers" onclick="setHistTab('transfers')" style="flex:1;text-align:center">移動履歴</button>
     </div>
-    <div class="card">
-      <div class="metric-grid" id="hist-metrics"></div>
-      <div id="history-list"></div>
+    <div id="hist-records-area">
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <button class="filter-btn active" id="filter-all" onclick="setFilter('all')">すべて</button>
+        <button class="filter-btn" id="filter-wallet" onclick="setFilter('wallet')">財布</button>
+        <button class="filter-btn" id="filter-paypay" onclick="setFilter('paypay')">PayPay</button>
+        <button class="filter-btn" id="filter-suica" onclick="setFilter('suica')">Suica</button>
+      </div>
+      <div class="card">
+        <div class="metric-grid" id="hist-metrics"></div>
+        <div id="history-list"></div>
+      </div>
+    </div>
+    <div id="hist-transfers-area" style="display:none">
+      <div class="card"><div id="transfer-list"></div></div>
     </div>
   </div>
 
+  <!-- 集計 -->
   <div id="tab-summary" class="section">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <span style="font-size:16px;font-weight:600">集計</span>
@@ -153,15 +267,20 @@ input:focus { outline: none; border-color: #555; background: #fff; }
       </div>
     </div>
     <div id="graph-area" style="display:none;margin-bottom:12px"></div>
-    <div id="month-filter-area" style="display:none;margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap"></div>
+    <div id="month-filter-area" style="margin-bottom:12px;flex-wrap:wrap;gap:8px"></div>
     <div class="card"><div id="sum-content"></div></div>
     <div class="card">
       <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:#666">支払い形態ごとの支出</div>
       <div id="pay-break"></div>
     </div>
-    <button onclick="exportCSV()" style="width:100%;padding:13px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:4px">CSVでエクスポート（バックアップ）</button>
+    <button onclick="exportCSV()" style="width:100%;padding:13px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:8px">CSVでエクスポート（バックアップ）</button>
+    <label style="width:100%;display:block">
+      <div style="width:100%;padding:13px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;text-align:center;box-sizing:border-box">CSVから復元（インポート）</div>
+      <input type="file" accept=".csv" onchange="importCSV(event)" style="display:none" />
+    </label>
   </div>
-  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 1.6</div>
+
+  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 2.9</div>
 </div>
 
 <script>
@@ -177,49 +296,247 @@ if(!seedDone){
   localStorage.setItem('kakeibo_seed_done','1');
 }
 var records = existing.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+var transfers = JSON.parse(localStorage.getItem('kakeibo_transfers') || '[]');
+var bankAccounts = JSON.parse(localStorage.getItem('kakeibo_banks') || '[]');
+var selectedBankId = null;
+
+function saveBanks(){ try{ localStorage.setItem('kakeibo_banks', JSON.stringify(bankAccounts)); }catch(e){} }
+
+// 設定モーダル
+function toggleBankHidden(id){
+  var b=bankAccounts.find(function(b){return String(b.id)===String(id);});
+  if(!b)return;
+  b.hidden=!b.hidden;
+  saveBanks();renderBalance();
+}
+function clearAllData(){
+  var input=document.getElementById('clear-confirm-input');
+  // 確認テキスト入力がない場合は入力欄を表示
+  if(!document.getElementById('clear-confirm-area')){
+    var area=document.createElement('div');
+    area.id='clear-confirm-area';
+    area.style.cssText='margin-top:10px';
+    area.innerHTML='<div style="font-size:12px;color:#c62828;margin-bottom:6px">本当にクリアしますか？「削除」と入力してボタンを押してください</div>'+
+      '<input type="text" id="clear-confirm-input" placeholder="削除" style="width:100%;font-size:15px;padding:10px;margin-bottom:8px;border:1px solid #ffcdd2;border-radius:8px" />'+
+      '<button onclick="clearAllData()" style="width:100%;padding:11px;background:#c62828;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit">完全にクリアする</button>';
+    document.querySelector('[onclick="clearAllData()"]').parentNode.appendChild(area);
+    return;
+  }
+  var val=document.getElementById('clear-confirm-input').value.trim();
+  if(val!=='削除'){alert('「削除」と正確に入力してください');return;}
+  records=[];transfers=[];
+  save();saveTransfers();
+  localStorage.removeItem('kakeibo_seed_done');
+  var area=document.getElementById('clear-confirm-area');
+  if(area)area.remove();
+  closeSettings();
+  renderAll();
+  alert('データをクリアしました！');
+}
+function applyInitBalance(){
+  var vals={wallet:parseInt(document.getElementById('init-wallet').value)||0, paypay:parseInt(document.getElementById('init-paypay').value)||0, suica:parseInt(document.getElementById('init-suica').value)||0};
+  var hasVal=vals.wallet||vals.paypay||vals.suica;
+  if(!hasVal){alert('金額を入力してください');return;}
+  var date=new Date(2000,0,1).toISOString();
+  ['wallet','paypay','suica'].forEach(function(p){
+    if(!vals[p])return;
+    records.push({id:Date.now()+Math.random(),type:'income',amount:vals[p],pay:p,note:'スタート時点',date:date});
+  });
+  records.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+  save();
+  document.getElementById('init-wallet').value='';
+  document.getElementById('init-paypay').value='';
+  document.getElementById('init-suica').value='';
+  closeSettings();
+  renderAll();
+  alert('初期残高を設定しました！');
+}
+function openSettings(){
+  renderSettingsBankList();
+  document.getElementById('settings-overlay').classList.add('open');
+}
+function closeSettings(){
+  document.getElementById('settings-overlay').classList.remove('open');
+  renderAll();
+}
+function renderSettingsBankList(){
+  var el=document.getElementById('settings-bank-list');
+  if(!bankAccounts.length){el.innerHTML='<div style="font-size:13px;color:#aaa;margin-bottom:8px">口座が登録されていません</div>';return;}
+  el.innerHTML=bankAccounts.map(function(b,i){
+    return'<div style="display:flex;align-items:center;gap:8px;padding:10px;background:#f9f9f9;border-radius:8px;margin-bottom:6px">'+
+      '<span style="flex:1;font-size:15px">'+b.name+'</span>'+
+      '<button onclick="removeBankAccount('+i+')" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:18px;padding:0 4px">×</button>'+
+    '</div>';
+  }).join('');
+}
+function addBankAccount(){
+  var name=document.getElementById('new-bank-name').value.trim();
+  var amount=parseInt(document.getElementById('new-bank-amount').value)||0;
+  if(!name){alert('口座名を入力してください');return;}
+  var bank={id:Date.now(),name:name,hidden:false};
+  bankAccounts.push(bank);
+  saveBanks();
+  // 初期残高があればスタート時点として記録
+  if(amount>0){
+    records.push({id:Date.now()+1,type:'income',amount:amount,pay:'bank',bankId:bank.id,note:'スタート時点（'+name+'）',date:new Date(2000,0,1).toISOString()});
+    records.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+    save();
+  }
+  document.getElementById('new-bank-name').value='';
+  document.getElementById('new-bank-amount').value='';
+  renderSettingsBankList();
+  renderAll();
+}
+function removeBankAccount(i){
+  var b=bankAccounts[i];
+  bankAccounts.splice(i,1);
+  saveBanks();
+  // 紐づいた記録も削除
+  records=records.filter(function(r){return !(r.pay==='bank'&&r.bankId===b.id);});
+  transfers=transfers.filter(function(t){return !((t.from==='bank'||t.to==='bank')&&t.bankId===b.id);});
+  save();saveTransfers();
+  renderSettingsBankList();
+  renderAll();
+}
+
+// 口座ボタンを更新
+function updateBankAccountBtns(){
+  var area=document.getElementById('bank-account-select');
+  var btns=document.getElementById('bank-account-btns');
+  if(!bankAccounts.length){area.style.display='none';selectedBankId=null;return;}
+  area.style.display='block';
+  btns.innerHTML=bankAccounts.map(function(b){
+    var sel=selectedBankId===b.id;
+    return'<button onclick="selBankAccount('+b.id+')" style="padding:8px 14px;border:1px solid '+(sel?'#ffca28':'#ddd')+';border-radius:8px;font-size:13px;background:'+(sel?'#fff8e1':'#f5f5f5')+';color:'+(sel?'#f57f17':'#888')+';cursor:pointer;font-family:inherit;font-weight:'+(sel?'600':'400')+'">'+b.name+'</button>';
+  }).join('');
+  if(!selectedBankId&&bankAccounts.length) selBankAccount(bankAccounts[0].id,true);
+}
+function selBankAccount(id, silent){
+  selectedBankId=id;
+  if(!silent) updateBankAccountBtns();
+}
 
 var selType_ = 'expense', selPay_ = 'wallet', editingId = null, pendingId = null, filterPay = 'all';
+var trFrom_ = 'bank', trTo_ = 'paypay', trBankId = null;
+var graphOpen = false, filterMonth = 'all', histTab = 'records';
+var balMonth = 'current';
 
+function save(){ try{ localStorage.setItem('kakeibo_v1', JSON.stringify(records)); }catch(e){} }
+function saveTransfers(){ try{ localStorage.setItem('kakeibo_transfers', JSON.stringify(transfers)); }catch(e){} }
+
+function selType(t){
+  selType_=t;
+  document.getElementById('btn-income').className='toggle-btn'+(t==='income'?' sel-income':'');
+  document.getElementById('btn-expense').className='toggle-btn'+(t==='expense'?' sel-expense':'');
+  document.getElementById('btn-transfer').className='toggle-btn'+(t==='transfer'?' sel-transfer':'');
+  document.getElementById('form-normal').style.display=t==='transfer'?'none':'block';
+  document.getElementById('form-transfer').style.display=t==='transfer'?'block':'none';
+  // 移動タブを開いたとき銀行を初期選択
+  if(t==='transfer') updateTrBankAccountBtns(true);
+}
+function selPay(p){
+  selPay_=p;
+  ['bank','wallet','paypay','suica'].forEach(function(x){
+    var el=document.getElementById('pay-'+x);
+    if(!el)return;
+    el.className='toggle-btn'+(x===p?' sel-'+x:'');
+  });
+  // 銀行選択時は口座ボタンを表示
+  var bankArea=document.getElementById('bank-account-select');
+  if(p==='bank'){updateBankAccountBtns();}
+  else{if(bankArea)bankArea.style.display='none';}
+}
+function selFrom(p){
+  trFrom_=p;
+  ['bank','wallet','paypay','suica'].forEach(function(x){
+    document.getElementById('tr-from-'+x).className='toggle-btn'+(x===p?' sel-'+x:'');
+  });
+  // 銀行選択時は口座ボタンを表示
+  updateTrBankAccountBtns(p==='bank');
+}
+function updateTrBankAccountBtns(show){
+  var area=document.getElementById('tr-bank-account-select');
+  if(!area)return;
+  if(!show||!bankAccounts.length){area.style.display='none';return;}
+  area.style.display='flex';
+  area.innerHTML=bankAccounts.map(function(b){
+    var sel=trBankId===b.id;
+    return'<button onclick="selTrBank('+b.id+')" style="padding:8px 14px;border:1px solid '+(sel?'#ffca28':'#ddd')+';border-radius:8px;font-size:13px;background:'+(sel?'#fff8e1':'#f5f5f5')+';color:'+(sel?'#f57f17':'#888')+';cursor:pointer;font-family:inherit;font-weight:'+(sel?'600':'400')+'">'+b.name+'</button>';
+  }).join('');
+  if(!trBankId&&bankAccounts.length) selTrBank(bankAccounts[0].id);
+}
+function selTrBank(id){
+  trBankId=id;
+  updateTrBankAccountBtns(true);
+}
+function selTo(p){
+  trTo_=p;
+  ['wallet','paypay','suica'].forEach(function(x){
+    document.getElementById('tr-to-'+x).className='toggle-btn'+(x===p?' sel-'+x:'');
+  });
+}
+function setHistTab(t){
+  histTab=t;
+  document.getElementById('hist-tab-records').className='filter-btn'+(t==='records'?' active':'');
+  document.getElementById('hist-tab-transfers').className='filter-btn'+(t==='transfers'?' active':'');
+  document.getElementById('hist-records-area').style.display=t==='records'?'block':'none';
+  document.getElementById('hist-transfers-area').style.display=t==='transfers'?'block':'none';
+}
 function setFilter(p){
   filterPay=p;
   ['all','wallet','paypay','suica'].forEach(function(x){
-    var btn=document.getElementById('filter-'+x);
-    btn.className='filter-btn'+(x===p?' active f-'+x:'');
+    document.getElementById('filter-'+x).className='filter-btn'+(x===p?' active f-'+x:'');
   });
   renderHistory();
 }
-
-function save(){try{localStorage.setItem('kakeibo_v1',JSON.stringify(records));}catch(e){}}
-function selType(t){selType_=t;document.getElementById('btn-income').className='toggle-btn'+(t==='income'?' sel-income':'');document.getElementById('btn-expense').className='toggle-btn'+(t==='expense'?' sel-expense':'');}
-function selPay(p){selPay_=p;['wallet','paypay','suica'].forEach(function(x){document.getElementById('pay-'+x).className='toggle-btn'+(x===p?' sel-'+x:'');});}
-function renderBalance(){
-  var pays=['wallet','paypay','suica'];
-  var labels={wallet:'財布',paypay:'PayPay',suica:'Suica'};
-  var tagBg={wallet:'#555',paypay:'#FF0033',suica:'#00FA9A'};
-  var tagCol={wallet:'#fff',paypay:'#fff',suica:'#005c38'};
-  var html='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">';
-  pays.forEach(function(p){
-    var inc=records.filter(function(r){return r.pay===p&&r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
-    var exp=records.filter(function(r){return r.pay===p&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
-    var bal=inc-exp;
-    var balCol=bal>=0?'#2e7d32':'#c62828';
-    html+='<div style="background:#fff;border-radius:12px;padding:12px 10px;box-shadow:0 1px 3px rgba(0,0,0,0.08);text-align:center">'+
-      '<span style="display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;background:'+tagBg[p]+';color:'+tagCol[p]+';font-weight:600;margin-bottom:8px">'+labels[p]+'</span>'+
-      '<div style="font-size:18px;font-weight:700;color:'+balCol+'">'+yen(bal)+'</div>'+
-      '<div style="font-size:10px;color:#aaa;margin-top:4px">収入 '+yen(inc)+'</div>'+
-      '<div style="font-size:10px;color:#aaa">支出 '+yen(exp)+'</div>'+
-    '</div>';
+function setBalMonth(m){ balMonth=m; renderBalance(); }
+function setMonthFilter(m){
+  filterMonth=m;
+  document.querySelectorAll('.mf-btn').forEach(function(b){
+    b.className='mf-btn'+(b.dataset.m===m?' active':'');
   });
-  html+='</div>';
-  document.getElementById('balance-area').innerHTML=html;
+  renderSummary();
 }
+function showTab(t){
+  ['balance','input','history','summary'].forEach(function(x){
+    var el=document.getElementById('tab-'+x);
+    if(el)el.classList.toggle('active',x===t);
+  });
+  var tabBtns=document.querySelectorAll('.tabs .tab');
+  var order=['balance','input','history','summary'];
+  tabBtns.forEach(function(el,i){
+    el.classList.toggle('active',order[i]===t);
+  });
+  if(t==='history')renderHistory();
+  if(t==='summary')renderSummary();
+}
+function toggleGraph(){
+  graphOpen=!graphOpen;
+  document.getElementById('graph-btn').className='filter-btn'+(graphOpen?' active':'');
+  var area=document.getElementById('graph-area');
+  if(graphOpen){area.style.display='block';renderGraph();}else{area.style.display='none';}
+}
+
 function addRecord(){
   var amt=parseInt(document.getElementById('amount').value);
   var note=document.getElementById('note').value.trim();
   if(!amt||amt<=0){alert('金額を入力してください');return;}
-  records.unshift({id:Date.now(),type:selType_,amount:amt,pay:selPay_,note:note,date:new Date().toISOString()});
+  var rec={id:Date.now(),type:selType_,amount:amt,pay:selPay_,note:note,date:new Date().toISOString()};
+  if(selPay_==='bank'&&selectedBankId) rec.bankId=selectedBankId;
+  records.unshift(rec);
   save();document.getElementById('amount').value='';document.getElementById('note').value='';
-  renderRecent();renderHistory();renderSummary();renderBalance();
+  renderAll();
+}
+function addTransfer(){
+  var amt=parseInt(document.getElementById('tr-amount').value);
+  var note=document.getElementById('tr-note').value.trim();
+  if(!amt||amt<=0){alert('金額を入力してください');return;}
+  if(trFrom_===trTo_){alert('移動元と移動先が同じです');return;}
+  var tr={id:Date.now(),from:trFrom_,to:trTo_,amount:amt,note:note,date:new Date().toISOString()};
+  if(trFrom_==='bank'&&trBankId) tr.bankId=trBankId;
+  transfers.unshift(tr);
+  saveTransfers();document.getElementById('tr-amount').value='';document.getElementById('tr-note').value='';
+  renderAll();
 }
 function askDelete(id){
   var r=records.find(function(r){return r.id===id;});if(!r)return;
@@ -232,7 +549,11 @@ function confirmDelete(){
   if(!pendingId)return;
   records=records.filter(function(r){return r.id!==pendingId;});
   pendingId=null;document.getElementById('overlay').classList.remove('open');
-  save();renderRecent();renderHistory();renderSummary();renderBalance();
+  save();renderAll();
+}
+function deleteTransfer(id){
+  transfers=transfers.filter(function(t){return t.id!==id;});
+  saveTransfers();renderAll();
 }
 function toggleEdit(id){editingId=editingId===id?null:id;renderHistory();}
 function saveDate(id){
@@ -240,17 +561,153 @@ function saveDate(id){
   var r=records.find(function(r){return r.id===id;});if(!r)return;
   var orig=new Date(r.date);var parts=input.value.split('-').map(Number);
   orig.setFullYear(parts[0]);orig.setMonth(parts[1]-1);orig.setDate(parts[2]);
-  r.date=orig.toISOString();editingId=null;save();renderRecent();renderHistory();renderSummary();renderBalance();
+  r.date=orig.toISOString();editingId=null;save();renderAll();
 }
-function toDateVal(iso){var d=new Date(iso);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function importCSV(e){
+  var file=e.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var lines=ev.target.result.replace(/^\uFEFF/,'').split('\n').filter(function(l){return l.trim();});
+    if(lines.length<2){alert('データが見つかりませんでした');return;}
+    var payMap={'財布':'wallet','PayPay':'paypay','Suica':'suica','銀行':'bank'};
+    var typeMap={'収入':'income','支出':'expense'};
+    var imported=[];
+    for(var i=1;i<lines.length;i++){
+      var cols=lines[i].split(',');if(cols.length<4)continue;
+      var type=typeMap[cols[1].trim()];
+      var amount=parseInt(cols[2].trim());
+      var pay=payMap[cols[3].trim()];
+      if(!type||!amount||!pay)continue;
+      // 2026/4/18 11:24 形式に対応
+      var dateStr=cols[0].trim();
+      var d;
+      try{
+        var sp=dateStr.split(' ');
+        var dp=sp[0].split('/');
+        var tp=sp[1]?sp[1].split(':'):[0,0];
+        d=new Date(parseInt(dp[0]),parseInt(dp[1])-1,parseInt(dp[2]),parseInt(tp[0]),parseInt(tp[1]));
+      }catch(err){continue;}
+      if(isNaN(d.getTime()))continue;
+      imported.push({id:d.getTime()+i,type:type,amount:amount,pay:pay,note:(cols[4]||'').trim(),date:d.toISOString()});
+    }
+    if(!imported.length){alert('有効なデータが見つかりませんでした');return;}
+    var existKeys=records.map(function(r){return r.date+r.amount+r.pay+r.type;});
+    var added=0;
+    imported.forEach(function(r){var k=r.date+r.amount+r.pay+r.type;if(existKeys.indexOf(k)===-1){records.push(r);added++;}});
+    records.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+    save();renderAll();
+    alert(added+'件を復元しました！（重複'+(imported.length-added)+'件はスキップ）');
+  };
+  reader.readAsText(file,'UTF-8');e.target.value='';
+}
+function exportCSV(){
+  var payLbl_={'wallet':'財布','paypay':'PayPay','suica':'Suica','bank':'銀行'};
+  var rows=['\uFEFF日時,種別,金額,支払い形態,内容'];
+  records.slice().sort(function(a,b){return new Date(a.date)-new Date(b.date);}).forEach(function(r){
+    var d=new Date(r.date);
+    var dt=d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate()+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+    rows.push(dt+','+(r.type==='income'?'収入':'支出')+','+r.amount+','+(payLbl_[r.pay]||r.pay)+','+(r.note||'').replace(/,/g,'、'));
+  });
+  var blob=new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);var a=document.createElement('a');
+  a.href=url;a.download='kakeibo_'+new Date().toISOString().slice(0,10)+'.csv';a.click();URL.revokeObjectURL(url);
+}
+
 function pad(n){return String(n).padStart(2,'0');}
 function fmt(iso){var d=new Date(iso);return{date:(d.getMonth()+1)+'/'+d.getDate(),time:pad(d.getHours())+':'+pad(d.getMinutes())};}
 function fmtYM(iso){var d=new Date(iso);return d.getFullYear()+'/'+pad(d.getMonth()+1);}
 function fmtDay(iso){var d=new Date(iso);return d.getFullYear()+'/'+pad(d.getMonth()+1)+'/'+pad(d.getDate());}
-function payLbl(p){return{wallet:'財布',paypay:'PayPay',suica:'Suica'}[p]||p;}
-function payTag(p){return'<span class="pay-tag pay-tag-'+p+'">'+payLbl(p)+'</span>';}
+function payLbl(p){return{wallet:'財布',paypay:'PayPay',suica:'Suica',bank:'銀行'}[p]||p;}
+function payTag(p){
+  var bg={wallet:'#555',paypay:'#FF0033',suica:'#00FA9A',bank:'#ffca28'};
+  var col={wallet:'#fff',paypay:'#fff',suica:'#005c38',bank:'#5f4000'};
+  return'<span class="pay-tag" style="background:'+bg[p]+';color:'+col[p]+'">'+payLbl(p)+'</span>';
+}
 function yen(n){return '\u00a5'+Math.abs(n).toLocaleString();}
 
+function renderAll(){
+  renderBalance();renderRecent();renderTransfers();
+  if(document.getElementById('tab-balance').classList.contains('active'))renderBalance();
+  if(document.getElementById('tab-history').classList.contains('active'))renderHistory();
+  if(document.getElementById('tab-summary').classList.contains('active'))renderSummary();
+}
+function renderBalance(){
+  var now=new Date();
+  var curYM=now.getFullYear()+'/'+pad(now.getMonth()+1);
+  var prevDate=new Date(now.getFullYear(),now.getMonth()-1,1);
+  var prevYM=prevDate.getFullYear()+'/'+pad(prevDate.getMonth()+1);
+  var targetYM=balMonth==='prev'?prevYM:curYM;
+  var pays=['wallet','paypay','suica'];
+  var labels={wallet:'財布',paypay:'PayPay',suica:'Suica'};
+  var tagBg={wallet:'#555',paypay:'#FF0033',suica:'#00FA9A'};
+  var tagCol={wallet:'#fff',paypay:'#fff',suica:'#005c38'};
+
+  function calcBal(p){
+    var inc=records.filter(function(r){return r.pay===p&&r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
+    var exp=records.filter(function(r){return r.pay===p&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
+    var trIn=transfers.filter(function(t){return t.to===p;}).reduce(function(s,t){return s+t.amount;},0);
+    var trOut=transfers.filter(function(t){return t.from===p;}).reduce(function(s,t){return s+t.amount;},0);
+    return inc-exp+trIn-trOut;
+  }
+  function calcMonthly(p){
+    var inc=records.filter(function(r){return r.pay===p&&r.type==='income'&&fmtYM(r.date)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
+    var exp=records.filter(function(r){return r.pay===p&&r.type==='expense'&&fmtYM(r.date)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
+    return{inc:inc,exp:exp};
+  }
+
+  var html='<div style="display:flex;gap:8px;margin-bottom:10px">'+
+    '<button class="filter-btn'+(balMonth==='current'?' active':'')+'" id="bal-btn-current" onclick="setBalMonth(\'current\')" style="flex:1;text-align:center;font-size:13px">今月</button>'+
+    '<button class="filter-btn'+(balMonth==='prev'?' active':'')+'" id="bal-btn-prev" onclick="setBalMonth(\'prev\')" style="flex:1;text-align:center;font-size:13px">先月</button>'+
+  '</div>';
+
+  // 銀行（上段・口座ごと）
+  if(bankAccounts.length){
+    bankAccounts.forEach(function(b){
+      var inc=records.filter(function(r){return r.pay==='bank'&&r.bankId===b.id&&r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
+      var exp=records.filter(function(r){return r.pay==='bank'&&r.bankId===b.id&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
+      var trIn=transfers.filter(function(t){return t.to==='bank'&&t.bankId===b.id;}).reduce(function(s,t){return s+t.amount;},0);
+      var trOut=transfers.filter(function(t){return t.from==='bank'&&t.bankId===b.id;}).reduce(function(s,t){return s+t.amount;},0);
+      var bal=inc-exp+trIn-trOut;
+      var mInc=records.filter(function(r){return r.pay==='bank'&&r.bankId===b.id&&r.type==='income'&&fmtYM(r.date)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
+      var mExp=records.filter(function(r){return r.pay==='bank'&&r.bankId===b.id&&r.type==='expense'&&fmtYM(r.date)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
+      html+='<div style="background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:8px">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'+
+          '<span style="display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;background:#ffca28;color:#5f4000;font-weight:700">'+b.name+'</span>'+
+          '<div onclick="toggleBankHidden(\''+b.id+'\')" style="cursor:pointer;width:36px;height:20px;border-radius:10px;background:'+(b.hidden?'#ddd':'#34c759')+';position:relative;transition:background 0.2s;flex-shrink:0">'+
+            '<div style="position:absolute;top:2px;left:'+(b.hidden?'2px':'16px')+';width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.3);transition:left 0.2s"></div>'+
+          '</div>'+
+        '</div>'+
+        '<div style="display:flex;align-items:flex-end;justify-content:space-between">'+
+          '<div style="font-size:11px;color:#aaa">'+
+            (b.hidden?'':'収入 '+yen(mInc)+'　支出 '+yen(mExp))+
+          '</div>'+
+          '<div style="font-size:22px;font-weight:700;color:'+(bal>=0?'#2e7d32':'#c62828')+'">'+
+            (b.hidden?'¥ ••••':yen(bal))+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    });
+  } else {
+    html+='<div style="background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">'+
+      '<div><span style="display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;background:#ffca28;color:#5f4000;font-weight:700;margin-bottom:6px">銀行口座</span>'+
+      '<div style="font-size:11px;color:#aaa">設定から口座を追加してください</div></div>'+
+      '<div style="font-size:14px;color:#ccc">未設定</div></div>';
+  }
+
+  // 財布・PayPay・Suica（下段3列）
+  html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">';
+  pays.forEach(function(p){
+    var bal=calcBal(p);var m=calcMonthly(p);
+    html+='<div style="background:#fff;border-radius:12px;padding:12px 10px;box-shadow:0 1px 3px rgba(0,0,0,0.08);text-align:center">'+
+      '<span style="display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;background:'+tagBg[p]+';color:'+tagCol[p]+';font-weight:600;margin-bottom:8px">'+labels[p]+'</span>'+
+      '<div style="font-size:18px;font-weight:700;color:'+(bal>=0?'#2e7d32':'#c62828')+'">'+yen(bal)+'</div>'+
+      '<div style="font-size:10px;color:#aaa;margin-top:4px">収入 '+yen(m.inc)+'</div>'+
+      '<div style="font-size:10px;color:#aaa">支出 '+yen(m.exp)+'</div>'+
+    '</div>';
+  });
+  html+='</div>';
+  document.getElementById('balance-area').innerHTML=html;
+}
 function recordHTML(r,showBtns){
   var ts=fmt(r.date),isEdit=editingId===r.id,col=r.type==='income'?'#2e7d32':'#c62828',sign=r.type==='income'?'+':'-';
   var bg=r.type==='income'?'background:#f0fff4;margin:0 -16px;padding:0 16px;border-radius:8px;':'';
@@ -264,138 +721,135 @@ function recordHTML(r,showBtns){
   }
   return html+'</div>';
 }
+function toDateVal(iso){var d=new Date(iso);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
 function renderRecent(){
   var el=document.getElementById('recent-area');if(!records.length){el.innerHTML='';return;}
-  el.innerHTML='<div style="font-size:13px;color:#888;margin-bottom:8px;font-weight:500">最近の記録</div><div class="card">'+records.slice(0,5).map(function(r){return recordHTML(r,false);}).join('')+'</div>';
+  el.innerHTML='<div style="font-size:13px;color:#888;margin-bottom:8px;font-weight:500">最近の記録</div><div class="card">'+records.slice(0,5).map(function(r){return recordHTML(r,true);}).join('')+'</div>';
+}
+var histMonth='current';
+function setHistMonth(m){
+  histMonth=m;
+  renderHistory();
 }
 function renderHistory(){
   var el=document.getElementById('history-list'),met=document.getElementById('hist-metrics');
   if(!records.length){el.innerHTML='<div class="empty">まだ記録がありません</div>';met.innerHTML='';return;}
+
+  var now=new Date();
+  var curYM=now.getFullYear()+'/'+pad(now.getMonth()+1);
+  var prevDate=new Date(now.getFullYear(),now.getMonth()-1,1);
+  var prevYM=prevDate.getFullYear()+'/'+pad(prevDate.getMonth()+1);
+  var targetYM=histMonth==='prev'?prevYM:curYM;
+
   var filtered=filterPay==='all'?records:records.filter(function(r){return r.pay===filterPay;});
-  var inc=filtered.filter(function(r){return r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
-  var exp=filtered.filter(function(r){return r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
+  var monthFiltered=filtered.filter(function(r){return fmtYM(r.date)===targetYM;});
+  var inc=monthFiltered.filter(function(r){return r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
+  var exp=monthFiltered.filter(function(r){return r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
   var bal=inc-exp;
-  met.innerHTML='<div class="metric"><div class="metric-label">収入</div><div class="metric-value" style="color:#2e7d32">'+yen(inc)+'</div></div>'+
+
+  met.innerHTML=
+    '<div style="display:flex;gap:8px;margin-bottom:10px;grid-column:1/-1">'+
+      '<button class="filter-btn'+(histMonth==='current'?' active':'')+'" onclick="setHistMonth(\'current\')" style="flex:1;text-align:center;font-size:13px">今月</button>'+
+      '<button class="filter-btn'+(histMonth==='prev'?' active':'')+'" onclick="setHistMonth(\'prev\')" style="flex:1;text-align:center;font-size:13px">先月</button>'+
+    '</div>'+
+    '<div class="metric"><div class="metric-label">収入</div><div class="metric-value" style="color:#2e7d32">'+yen(inc)+'</div></div>'+
     '<div class="metric"><div class="metric-label">支出</div><div class="metric-value" style="color:#c62828">'+yen(exp)+'</div></div>'+
     '<div class="metric"><div class="metric-label">収支</div><div class="metric-value" style="color:'+(bal>=0?'#2e7d32':'#c62828')+'">'+(bal>=0?'+':'')+yen(bal)+'</div></div>';
   el.innerHTML=filtered.length?filtered.map(function(r){return recordHTML(r,true);}).join(''):'<div class="empty">記録がありません</div>';
 }
-var filterMonth='all';
-function setMonthFilter(m){
-  filterMonth=m;
-  document.querySelectorAll('.mf-btn').forEach(function(b){
-    b.className='filter-btn mf-btn'+(b.dataset.m===m?' active':'');
-  });
-  renderSummary();
+function renderTransfers(){
+  var el=document.getElementById('transfer-list');if(!el)return;
+  if(!transfers.length){el.innerHTML='<div class="empty">移動の記録がありません</div>';return;}
+  el.innerHTML=transfers.map(function(t){
+    var ts=fmt(t.date);
+    var bg={bank:'#ffca28',wallet:'#555',paypay:'#FF0033',suica:'#00FA9A'};
+    var col={bank:'#5f4000',wallet:'#fff',paypay:'#fff',suica:'#005c38'};
+    function tag(p){return'<span style="display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;background:'+bg[p]+';color:'+col[p]+';font-weight:600">'+payLbl(p)+'</span>';}
+    return'<div class="transfer-row">'+
+      '<div style="font-size:12px;color:#999;min-width:48px">'+ts.date+'<br><span style="font-size:11px;color:#bbb">'+ts.time+'</span></div>'+
+      '<div style="display:flex;align-items:center;gap:6px;flex:1;flex-wrap:wrap">'+tag(t.from)+'<span style="color:#aaa">→</span>'+tag(t.to)+
+      (t.note?'<span style="font-size:12px;color:#888">'+t.note+'</span>':'')+
+      '</div>'+
+      '<span class="transfer-amt">'+yen(t.amount)+'</span>'+
+      '<button class="transfer-del" onclick="deleteTransfer('+t.id+')">削除</button>'+
+    '</div>';
+  }).join('');
 }
 function renderSummary(){
   var mode=document.getElementById('sum-mode').value,el=document.getElementById('sum-content'),pb=document.getElementById('pay-break');
   var mfa=document.getElementById('month-filter-area');
   if(!records.length){el.innerHTML='<div class="empty">まだ記録がありません</div>';pb.innerHTML='';mfa.style.display='none';return;}
   var pays=['wallet','paypay','suica'];
-  var labels={wallet:'財布',paypay:'PayPay',suica:'Suica'};
   var tagBg={wallet:'#555',paypay:'#FF0033',suica:'#00FA9A'};
   var tagCol={wallet:'#fff',paypay:'#fff',suica:'#005c38'};
-
   if(mode==='day'){
-    // 月フィルターボタンを生成
-    var months=[];
-    records.forEach(function(r){var m=fmtYM(r.date);if(months.indexOf(m)===-1)months.push(m);});
-    months.sort().reverse();
-    if(filterMonth==='all'||months.indexOf(filterMonth)===-1)filterMonth=months[0];
+    var months=[];records.forEach(function(r){var m=fmtYM(r.date);if(months.indexOf(m)===-1)months.push(m);});months.sort().reverse();
+    if(filterMonth==='all'||months.indexOf(filterMonth)===-1)filterMonth=months[0]||'all';
     mfa.style.display='flex';
-    mfa.innerHTML=months.map(function(m){
-      return'<button class="filter-btn mf-btn'+(m===filterMonth?' active':'')+'" data-m="'+m+'" onclick="setMonthFilter(\''+m+'\')">'+m+'</button>';
-    }).join('');
-
+    mfa.innerHTML=months.map(function(m){return'<button class="mf-btn'+(m===filterMonth?' active':'')+'" data-m="'+m+'" onclick="setMonthFilter(\''+m+'\')">'+m+'</button>';}).join('');
     var html='';
-    var filteredRecs=records.filter(function(r){return fmtYM(r.date)===filterMonth;});
+    var filtRecs=records.filter(function(r){return fmtYM(r.date)===filterMonth;});
     pays.forEach(function(p){
       var grouped={};
-      filteredRecs.filter(function(r){return r.pay===p;}).forEach(function(r){
-        var k=fmtDay(r.date);
-        if(!grouped[k])grouped[k]={inc:0,exp:0};
-        if(r.type==='income')grouped[k].inc+=r.amount;
-        else grouped[k].exp+=r.amount;
-      });
-      var keys=Object.keys(grouped).sort().reverse();
-      if(!keys.length)return;
-      html+='<div style="margin-bottom:20px">'+
-        '<div style="margin-bottom:8px"><span style="display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;background:'+tagBg[p]+';color:'+tagCol[p]+';font-weight:600">'+labels[p]+'</span></div>'+
+      filtRecs.filter(function(r){return r.pay===p;}).forEach(function(r){var k=fmtDay(r.date);if(!grouped[k])grouped[k]={inc:0,exp:0};if(r.type==='income')grouped[k].inc+=r.amount;else grouped[k].exp+=r.amount;});
+      var keys=Object.keys(grouped).sort().reverse();if(!keys.length)return;
+      html+='<div style="margin-bottom:20px"><div style="margin-bottom:8px"><span style="display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;background:'+tagBg[p]+';color:'+tagCol[p]+';font-weight:600">'+payLbl(p)+'</span></div>'+
         '<table class="sum-table"><thead><tr><th>日付</th><th>収入</th><th>支出</th><th>収支</th></tr></thead><tbody>'+
-        keys.map(function(k){
-          var bal=grouped[k].inc-grouped[k].exp;
-          return'<tr><td>'+k.slice(5)+'</td><td style="color:#2e7d32">'+(grouped[k].inc?'+'+yen(grouped[k].inc):'-')+'</td><td style="color:#c62828">'+(grouped[k].exp?'-'+yen(grouped[k].exp):'-')+'</td><td style="color:'+(bal>=0?'#2e7d32':'#c62828')+';font-weight:600">'+(bal>=0?'+':'')+yen(bal)+'</td></tr>';
-        }).join('')+'</tbody></table></div>';
+        keys.map(function(k){var bal=grouped[k].inc-grouped[k].exp;return'<tr><td>'+k.slice(5)+'</td><td style="color:#2e7d32">'+(grouped[k].inc?'+'+yen(grouped[k].inc):'-')+'</td><td style="color:#c62828">'+(grouped[k].exp?'-'+yen(grouped[k].exp):'-')+'</td><td style="color:'+(bal>=0?'#2e7d32':'#c62828')+';font-weight:600">'+(bal>=0?'+':'')+yen(bal)+'</td></tr>';}).join('')+
+        '</tbody></table></div>';
     });
     el.innerHTML=html||'<div class="empty">記録がありません</div>';
-
   } else {
-    // 月別：年月・財布・PayPay・Suica・合計を横並び1テーブル
     mfa.style.display='none';
-    var allMonths=[];
-    records.forEach(function(r){var m=fmtYM(r.date);if(allMonths.indexOf(m)===-1)allMonths.push(m);});
-    allMonths.sort().reverse();
-    var monthData={};
-    allMonths.forEach(function(m){monthData[m]={wallet:0,paypay:0,suica:0,total:0};});
-    records.filter(function(r){return r.type==='expense';}).forEach(function(r){
-      var m=fmtYM(r.date);
-      monthData[m][r.pay]+=r.amount;
-      monthData[m].total+=r.amount;
-    });
-    var html='<table class="sum-table"><thead><tr>'+
-      '<th style="text-align:left">年月</th>'+
+    var allMonths=[];records.forEach(function(r){var m=fmtYM(r.date);if(allMonths.indexOf(m)===-1)allMonths.push(m);});allMonths.sort().reverse();
+    var monthData={};allMonths.forEach(function(m){monthData[m]={wallet:0,paypay:0,suica:0,total:0};});
+    records.filter(function(r){return r.type==='expense';}).forEach(function(r){var m=fmtYM(r.date);if(monthData[m]){monthData[m][r.pay]+=r.amount;monthData[m].total+=r.amount;}});
+    el.innerHTML='<table class="sum-table"><thead><tr><th style="text-align:left">年月</th>'+
       '<th><span style="display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;background:#555;color:#fff">財布</span></th>'+
       '<th><span style="display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;background:#FF0033;color:#fff">PP</span></th>'+
       '<th><span style="display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;background:#00FA9A;color:#005c38">Suica</span></th>'+
-      '<th style="color:#1a1a1a;font-weight:700">合計</th>'+
-      '</tr></thead><tbody>'+
-      allMonths.map(function(m){
-        var d=monthData[m];
-        return'<tr>'+
-          '<td>'+m+'</td>'+
-          '<td style="color:#c62828">'+(d.wallet?yen(d.wallet):'-')+'</td>'+
-          '<td style="color:#c62828">'+(d.paypay?yen(d.paypay):'-')+'</td>'+
-          '<td style="color:#c62828">'+(d.suica?yen(d.suica):'-')+'</td>'+
-          '<td style="color:#c62828;font-weight:700">'+yen(d.total)+'</td>'+
-          '</tr>';
-      }).join('')+'</tbody></table>';
-    el.innerHTML=html;
-  }
+      '<th style="color:#1a1a1a;font-weight:700">月計</th>'+
+      '<th style="color:#888;font-weight:700">累計</th></tr></thead><tbody>'+
+      (function(){var cum=0;return allMonths.slice().reverse().map(function(m){cum+=monthData[m].total;return{m:m,cum:cum};}).reverse().map(function(obj){var m=obj.m;var d=monthData[m];return'<tr><td>'+m+'</td><td style="color:#c62828">'+(d.wallet?yen(d.wallet):'-')+'</td><td style="color:#c62828">'+(d.paypay?yen(d.paypay):'-')+'</td><td style="color:#c62828">'+(d.suica?yen(d.suica):'-')+'</td><td style="color:#c62828;font-weight:700">'+yen(d.total)+'</td><td style="color:#888;font-weight:600">'+yen(obj.cum)+'</td></tr>';}).join('');})() +
+      '</tbody></table>';
 
-  var totals={};
-  pays.forEach(function(p){totals[p]=records.filter(function(r){return r.pay===p&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);});
+    // 銀行口座ごとの引き出し額
+    if(bankAccounts.length&&transfers.length){
+      var trMonths=[];transfers.forEach(function(t){if(t.from==='bank'){var m=fmtYM(t.date);if(trMonths.indexOf(m)===-1)trMonths.push(m);}});
+      trMonths.sort().reverse();
+      if(trMonths.length){
+        var bankHtml='<div style="margin-top:16px"><div style="font-size:13px;font-weight:600;margin-bottom:10px;color:#666">銀行口座からの引き出し</div>';
+        bankAccounts.forEach(function(b){
+          var trData={};trMonths.forEach(function(m){trData[m]=0;});
+          transfers.filter(function(t){return t.from==='bank'&&t.bankId===b.id;}).forEach(function(t){var m=fmtYM(t.date);if(trData[m]!==undefined)trData[m]+=t.amount;else trData[m]=t.amount;});
+          var hasData=Object.values(trData).some(function(v){return v>0;});
+          if(!hasData)return;
+          bankHtml+='<div style="margin-bottom:14px"><div style="margin-bottom:6px"><span style="display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;background:#ffca28;color:#5f4000;font-weight:600">'+b.name+'</span></div>'+
+            '<table class="sum-table"><thead><tr><th style="text-align:left">年月</th><th>引き出し額</th></tr></thead><tbody>'+
+            trMonths.map(function(m){return trData[m]?'<tr><td>'+m+'</td><td style="color:#3949ab;font-weight:600">'+yen(trData[m])+'</td></tr>':'';}).join('')+
+            '</tbody></table></div>';
+        });
+        bankHtml+='</div>';
+        el.innerHTML+=bankHtml;
+      }
+    }
+  }
+  var totals={};pays.forEach(function(p){totals[p]=records.filter(function(r){return r.pay===p&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);});
   var safe=Math.max.apply(null,pays.map(function(p){return totals[p];}));safe=safe||1;
-  pb.innerHTML=pays.map(function(p){return'<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span style="display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;background:'+tagBg[p]+';color:'+tagCol[p]+';font-weight:600">'+labels[p]+'</span><span style="color:#c62828">'+(totals[p]?'-'+yen(totals[p]):'-')+'</span></div><div class="bar-wrap"><div class="bar-fill" style="width:'+Math.round(totals[p]/safe*100)+'%"></div></div></div>';}).join('');
-}
-var graphOpen=false;
-function toggleGraph(){
-  graphOpen=!graphOpen;
-  var btn=document.getElementById('graph-btn');
-  var area=document.getElementById('graph-area');
-  btn.className='filter-btn'+(graphOpen?' active':'');
-  if(graphOpen){area.style.display='block';renderGraph();}
-  else{area.style.display='none';}
+  pb.innerHTML=pays.map(function(p){return'<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span style="display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;background:'+tagBg[p]+';color:'+tagCol[p]+';font-weight:600">'+payLbl(p)+'</span><span style="color:#c62828">'+(totals[p]?yen(totals[p]):'-')+'</span></div><div class="bar-wrap"><div class="bar-fill" style="width:'+Math.round(totals[p]/safe*100)+'%"></div></div></div>';}).join('');
 }
 function renderGraph(){
   var area=document.getElementById('graph-area');
-  var allMonths=[];
-  records.forEach(function(r){var m=fmtYM(r.date);if(allMonths.indexOf(m)===-1)allMonths.push(m);});
-  allMonths.sort();
+  var allMonths=[];records.forEach(function(r){var m=fmtYM(r.date);if(allMonths.indexOf(m)===-1)allMonths.push(m);});allMonths.sort();
   if(!allMonths.length){area.innerHTML='';return;}
-  var totals=allMonths.map(function(m){
-    return records.filter(function(r){return r.type==='expense'&&fmtYM(r.date)===m;}).reduce(function(s,r){return s+r.amount;},0);
-  });
+  var totals=allMonths.map(function(m){return records.filter(function(r){return r.type==='expense'&&fmtYM(r.date)===m;}).reduce(function(s,r){return s+r.amount;},0);});
   var maxVal=Math.max.apply(null,totals)||1;
-  var barW=44;
-  var totalW=Math.max(allMonths.length*(barW+12),300);
+  var barW=44,totalW=Math.max(allMonths.length*(barW+12),300);
   var html='<div class="card"><div style="font-size:12px;color:#888;margin-bottom:10px">月別合計支出</div>'+
     '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;" id="graph-scroll">'+
-    '<div style="display:flex;align-items:flex-end;gap:12px;height:140px;padding:0 4px 0 4px;width:'+totalW+'px;box-sizing:border-box">';
+    '<div style="display:flex;align-items:flex-end;gap:12px;height:140px;padding:0 4px;width:'+totalW+'px;">';
   allMonths.forEach(function(m,i){
-    var val=totals[i];
-    var barH=Math.max(Math.round(val/maxVal*104),val?3:0);
-    var isLast=(i===allMonths.length-1);
+    var val=totals[i],barH=Math.max(Math.round(val/maxVal*104),val?3:0),isLast=(i===allMonths.length-1);
     html+='<div style="width:'+barW+'px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative" class="gcol">'+
       '<div class="gtip" style="display:none;position:absolute;top:-26px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;font-size:10px;padding:3px 7px;border-radius:6px;white-space:nowrap;z-index:10;pointer-events:none">'+yen(val)+'</div>'+
       '<div class="gbar" style="width:55%;height:'+barH+'px;background:'+(isLast?'#333':'#aaa')+';border-radius:3px 3px 0 0;min-height:'+(val?3:0)+'px;cursor:pointer"></div>'+
@@ -404,47 +858,16 @@ function renderGraph(){
   });
   html+='</div></div></div>';
   area.innerHTML=html;
-
-  // 右端にスクロール
-  var sc=document.getElementById('graph-scroll');
-  if(sc)sc.scrollLeft=99999;
-
-  // ホバー＆タップでtooltip
+  var sc=document.getElementById('graph-scroll');if(sc)sc.scrollLeft=99999;
   area.querySelectorAll('.gcol').forEach(function(col){
-    var tip=col.querySelector('.gtip');
-    var bar=col.querySelector('.gbar');
-    if(!bar||!tip)return;
+    var tip=col.querySelector('.gtip'),bar=col.querySelector('.gbar');if(!bar||!tip)return;
     bar.addEventListener('mouseenter',function(){tip.style.display='block';});
     bar.addEventListener('mouseleave',function(){tip.style.display='none';});
-    bar.addEventListener('touchstart',function(e){
-      e.preventDefault();
-      var shown=tip.style.display==='block';
-      area.querySelectorAll('.gtip').forEach(function(t){t.style.display='none';});
-      tip.style.display=shown?'none':'block';
-    },{passive:false});
+    bar.addEventListener('touchstart',function(e){e.preventDefault();var shown=tip.style.display==='block';area.querySelectorAll('.gtip').forEach(function(t){t.style.display='none';});tip.style.display=shown?'none':'block';},{passive:false});
   });
 }
-function exportCSV(){
-  var payLbl_={'wallet':'財布','paypay':'PayPay','suica':'Suica'};
-  var rows=['\uFEFF日時,種別,金額,支払い形態,内容'];
-  records.slice().sort(function(a,b){return new Date(a.date)-new Date(b.date);}).forEach(function(r){
-    var d=new Date(r.date);
-    var dt=d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate()+' '+pad(d.getHours())+':'+pad(d.getMinutes());
-    var type=r.type==='income'?'収入':'支出';
-    var note=(r.note||'').replace(/,/g,'、');
-    rows.push(dt+','+type+','+r.amount+','+(payLbl_[r.pay]||r.pay)+','+note);
-  });
-  var blob=new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8;'});
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement('a');
-  a.href=url;a.download='kakeibo_'+new Date().toISOString().slice(0,10)+'.csv';
-  a.click();URL.revokeObjectURL(url);
-}
-function showTab(t){
-  ['input','history','summary'].forEach(function(x){document.getElementById('tab-'+x).classList.toggle('active',x===t);});
-  document.querySelectorAll('.tab').forEach(function(el,i){el.classList.toggle('active',['input','history','summary'][i]===t);});
-  if(t==='history')renderHistory();if(t==='summary')renderSummary();
-}
-renderRecent();renderBalance();</script>
+
+renderAll();selPay('wallet');
+</script>
 </body>
 </html>
