@@ -912,6 +912,7 @@ function deleteTransfer(id){
 }
 function toggleEdit(id){editingId=editingId===id?null:id;editMode='date';renderHistory();renderRecent();}
 function toggleEditAmount(id){editingId=editingId===id?null:id;editMode='amount';renderHistory();renderRecent();}
+function toggleEditPay(id){editingId=editingId===id?null:id;editMode='pay';renderHistory();renderRecent();}
 var editMode='date';
 function saveDate(id){
   var input=document.getElementById('di-'+id);if(!input||!input.value)return;
@@ -925,6 +926,11 @@ function saveAmount(id){
   var amt=parseInt(input.value);if(!amt||amt<=0){alert('正しい金額を入力してください');return;}
   var r=records.find(function(r){return r.id===id;});if(!r)return;
   r.amount=amt;editingId=null;save();renderAll();
+}
+function savePay(id){
+  var sel=document.getElementById('pi-'+id);if(!sel)return;
+  var r=records.find(function(r){return r.id===id;});if(!r)return;
+  r.pay=sel.value;editingId=null;save();renderAll();
 }
 function importCSV(e){
   var file=e.target.files[0];if(!file)return;
@@ -1114,10 +1120,12 @@ function recordHTML(r,showBtns){
     html+='<div class="record-btns">'+
       '<button class="sm-btn" onclick="toggleEdit('+r.id+')">日付修正</button>'+
       '<button class="sm-btn" onclick="toggleEditAmount('+r.id+')">金額修正</button>'+
+      '<button class="sm-btn" onclick="toggleEditPay('+r.id+')">形態修正</button>'+
       '<button class="sm-btn del" onclick="askDelete('+r.id+')">削除</button>'+
     '</div>';
     if(isEdit&&editMode==='date')html+='<div class="edit-row"><span style="font-size:13px;color:#666">日付：</span><input type="date" id="di-'+r.id+'" value="'+toDateVal(r.date)+'" /><button class="save-btn" onclick="saveDate('+r.id+')">保存</button><button class="cncl-btn" onclick="toggleEdit('+r.id+')">取消</button></div>';
     if(isEdit&&editMode==='amount')html+='<div class="edit-row"><span style="font-size:13px;color:#666">金額：</span><input type="number" id="ai-'+r.id+'" value="'+r.amount+'" inputmode="numeric" style="width:120px" /><button class="save-btn" onclick="saveAmount('+r.id+')">保存</button><button class="cncl-btn" onclick="toggleEditAmount('+r.id+')">取消</button></div>';
+    if(isEdit&&editMode==='pay')html+='<div class="edit-row"><span style="font-size:13px;color:#666">形態：</span><select id="pi-'+r.id+'" style="flex:1;font-size:15px;padding:8px;border:1px solid #ddd;border-radius:8px;background:#fff;font-family:inherit"><option value="wallet"'+(r.pay==='wallet'?' selected':'')+'>財布</option><option value="paypay"'+(r.pay==='paypay'?' selected':'')+'>PayPay</option><option value="suica"'+(r.pay==='suica'?' selected':'')+'>Suica</option><option value="bank"'+(r.pay==='bank'?' selected':'')+'>銀行</option><option value="card"'+(r.pay==='card'?' selected':'')+'>カード</option></select><button class="save-btn" onclick="savePay('+r.id+')">保存</button><button class="cncl-btn" onclick="toggleEditPay('+r.id+')">取消</button></div>';
   }
   return html+'</div>';
 }
