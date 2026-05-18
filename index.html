@@ -916,21 +916,42 @@ function toggleEditPay(id){editingId=editingId===id?null:id;editMode='pay';rende
 var editMode='date';
 function saveDate(id){
   var input=document.getElementById('di-'+id);if(!input||!input.value)return;
-  var r=records.find(function(r){return r.id===id;});if(!r)return;
-  var orig=new Date(r.date);var parts=input.value.split('-').map(Number);
-  orig.setFullYear(parts[0]);orig.setMonth(parts[1]-1);orig.setDate(parts[2]);
-  r.date=orig.toISOString();editingId=null;save();renderAll();
+  var parts=input.value.split('-');
+  for(var i=0;i<records.length;i++){
+    if(String(records[i].id)===String(id)){
+      var orig=new Date(records[i].date);
+      orig.setFullYear(parseInt(parts[0]));orig.setMonth(parseInt(parts[1])-1);orig.setDate(parseInt(parts[2]));
+      records[i].date=orig.toISOString();break;
+    }
+  }
+  editingId=null;
+  try{ localStorage.setItem('kakeibo_v1', JSON.stringify(records)); }catch(e){}
+  renderRecent();renderHistory();renderBalance();
 }
 function saveAmount(id){
   var input=document.getElementById('ai-'+id);if(!input)return;
   var amt=parseInt(input.value);if(!amt||amt<=0){alert('正しい金額を入力してください');return;}
-  var r=records.find(function(r){return r.id===id;});if(!r)return;
-  r.amount=amt;editingId=null;save();renderAll();
+  for(var i=0;i<records.length;i++){
+    if(String(records[i].id)===String(id)){
+      records[i].amount=amt;break;
+    }
+  }
+  editingId=null;
+  try{ localStorage.setItem('kakeibo_v1', JSON.stringify(records)); }catch(e){}
+  renderRecent();renderHistory();renderBalance();
 }
 function savePay(id){
   var sel=document.getElementById('pi-'+id);if(!sel)return;
-  var r=records.find(function(r){return r.id===id;});if(!r)return;
-  r.pay=sel.value;editingId=null;save();renderAll();
+  var newPay=sel.value;
+  for(var i=0;i<records.length;i++){
+    if(String(records[i].id)===String(id)){
+      records[i].pay=newPay;
+      break;
+    }
+  }
+  editingId=null;
+  try{ localStorage.setItem('kakeibo_v1', JSON.stringify(records)); }catch(e){}
+  renderRecent();renderHistory();renderBalance();
 }
 function importCSV(e){
   var file=e.target.files[0];if(!file)return;
