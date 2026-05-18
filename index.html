@@ -910,22 +910,30 @@ function deleteTransfer(id){
   transfers=transfers.filter(function(t){return t.id!==id;});
   saveTransfers();renderAll();
 }
-function toggleEdit(id){editingId=editingId===id?null:id;renderHistory();renderRecent();}
+function toggleEdit(id){id=Number(id);editingId=editingId===id?null:id;renderHistory();renderRecent();}
 function saveEdit(id){
-  var r=records.find(function(r){return r.id===id;});if(!r)return;
+  id=Number(id);
+  var idx=records.findIndex(function(r){return Number(r.id)===id;});
+  if(idx===-1){alert('記録が見つかりません');return;}
   var dateInput=document.getElementById('di-'+id);
   var amtInput=document.getElementById('ai-'+id);
   var payInput=document.getElementById('pi-'+id);
   var noteInput=document.getElementById('ni-'+id);
   if(dateInput&&dateInput.value){
-    var orig=new Date(r.date);var parts=dateInput.value.split('-').map(Number);
+    var orig=new Date(records[idx].date);
+    var parts=dateInput.value.split('-').map(Number);
     orig.setFullYear(parts[0]);orig.setMonth(parts[1]-1);orig.setDate(parts[2]);
-    r.date=orig.toISOString();
+    records[idx].date=orig.toISOString();
   }
-  if(amtInput&&parseInt(amtInput.value)>0) r.amount=parseInt(amtInput.value);
-  if(payInput) r.pay=payInput.value;
-  if(noteInput) r.note=noteInput.value.trim();
-  editingId=null;save();renderAll();
+  if(amtInput&&parseInt(amtInput.value)>0) records[idx].amount=parseInt(amtInput.value);
+  if(payInput&&payInput.value) records[idx].pay=payInput.value;
+  if(noteInput) records[idx].note=noteInput.value.trim();
+  editingId=null;
+  save();
+  renderRecent();
+  renderHistory();
+  renderBalance();
+  renderSummary();
 }
 function saveDate(id){
   var input=document.getElementById('di-'+id);if(!input||!input.value)return;
@@ -1022,9 +1030,8 @@ function payTag(p,cardId){
 function yen(n){return '\u00a5'+Math.abs(n).toLocaleString();}
 
 function renderAll(){
-  renderBalance();renderRecent();renderTransfers();
+  renderBalance();renderRecent();renderTransfers();renderHistory();
   if(document.getElementById('tab-shift')&&document.getElementById('tab-shift').classList.contains('active'))renderShift();
-  if(document.getElementById('tab-history').classList.contains('active'))renderHistory();
   if(document.getElementById('tab-summary').classList.contains('active')){renderSummary();renderCard();}
 }
 function renderBalance(){
