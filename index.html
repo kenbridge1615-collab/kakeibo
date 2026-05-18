@@ -913,7 +913,10 @@ function deleteTransfer(id){
 function toggleEdit(id){id=Number(id);editingId=editingId===id?null:id;renderHistory();renderRecent();}
 function saveEdit(id){
   id=Number(id);
-  var idx=records.findIndex(function(r){return Number(r.id)===id;});
+  var idx=-1;
+  for(var i=0;i<records.length;i++){
+    if(Number(records[i].id)===id){idx=i;break;}
+  }
   if(idx===-1){alert('記録が見つかりません');return;}
   var dateInput=document.getElementById('di-'+id);
   var amtInput=document.getElementById('ai-'+id);
@@ -921,15 +924,16 @@ function saveEdit(id){
   var noteInput=document.getElementById('ni-'+id);
   if(dateInput&&dateInput.value){
     var orig=new Date(records[idx].date);
-    var parts=dateInput.value.split('-').map(Number);
-    orig.setFullYear(parts[0]);orig.setMonth(parts[1]-1);orig.setDate(parts[2]);
+    var parts=dateInput.value.split('-');
+    orig.setFullYear(parseInt(parts[0]));orig.setMonth(parseInt(parts[1])-1);orig.setDate(parseInt(parts[2]));
     records[idx].date=orig.toISOString();
   }
-  if(amtInput&&parseInt(amtInput.value)>0) records[idx].amount=parseInt(amtInput.value);
+  var amt=amtInput?parseInt(amtInput.value):0;
+  if(amt>0) records[idx].amount=amt;
   if(payInput&&payInput.value) records[idx].pay=payInput.value;
   if(noteInput) records[idx].note=noteInput.value.trim();
   editingId=null;
-  save();
+  try{ localStorage.setItem('kakeibo_v1', JSON.stringify(records)); }catch(e){ alert('保存エラー:'+e); }
   renderRecent();
   renderHistory();
   renderBalance();
