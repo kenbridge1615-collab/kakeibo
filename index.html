@@ -27,6 +27,7 @@ input:focus { outline: none; border-color: #555; background: #fff; }
 .toggle-btn.sel-paypay { background: #fff0f0; color: #cc0000; border-color: #FF0033; }
 .toggle-btn.sel-suica { background: #e0fff5; color: #007a50; border-color: #00FA9A; }
 .toggle-btn.sel-bank { background: #fff8e1; color: #f57f17; border-color: #ffca28; }
+.toggle-btn.sel-card { background: #f3e8ff; color: #7c3aed; border-color: #a855f7; }
 .toggle-btn.sel-transfer { background: #f0f0ff; color: #3949ab; border-color: #7986cb; }
 .pay-tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; margin-top: 4px; }
 .pay-tag-wallet { background: #555; color: #fff; }
@@ -106,6 +107,18 @@ input:focus { outline: none; border-color: #555; background: #fff; }
       <button onclick="closeSettings()" style="background:none;border:none;font-size:22px;color:#aaa;cursor:pointer;line-height:1">×</button>
     </div>
 
+    <!-- 給料設定 -->
+    <div style="font-size:13px;font-weight:600;color:#555;margin-bottom:8px">給料設定</div>
+    <div class="form-row">
+      <label>時給（円）</label>
+      <input type="number" id="set-hourly" placeholder="例: 1000" inputmode="numeric" />
+    </div>
+    <div class="form-row">
+      <label>交通費（1回あたり・円）</label>
+      <input type="number" id="set-transport" placeholder="例: 300" inputmode="numeric" />
+    </div>
+    <button onclick="saveJobSettings()" style="width:100%;padding:11px;background:#3949ab;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;margin-bottom:20px">給料設定を保存</button>
+
     <!-- 初期残高 -->
     <div style="font-size:13px;font-weight:600;color:#555;margin-bottom:8px">初期残高の設定</div>
     <div style="font-size:12px;color:#aaa;margin-bottom:12px">設定すると「スタート時点」として収入記録が自動で追加されます。一度だけ設定してください。</div>
@@ -133,6 +146,25 @@ input:focus { outline: none; border-color: #555; background: #fff; }
     </div>
     <button onclick="addBankAccount()" style="width:100%;padding:11px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;margin-top:6px">＋ 口座を追加</button>
 
+    <!-- クレジットカード -->
+    <div style="font-size:13px;font-weight:600;color:#555;margin:20px 0 8px">クレジットカードの管理</div>
+    <div style="font-size:12px;color:#aaa;margin-bottom:12px">カードを登録すると入力フォームと残高カードに反映されます</div>
+    <div id="settings-card-list" style="margin-bottom:12px"></div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:4px">
+      <input type="text" id="new-card-name" placeholder="カード名（例：楽天カード）" style="width:100%;font-size:15px;padding:10px;border:1px solid #ddd;border-radius:8px" />
+      <div style="display:flex;gap:8px">
+        <select id="new-card-bank" style="flex:1;font-size:14px;padding:10px;border:1px solid #ddd;border-radius:8px;background:#fafafa;font-family:inherit">
+          <option value="">引落とし口座を選択</option>
+        </select>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <span style="font-size:13px;color:#666">毎月</span>
+          <input type="number" id="new-card-day" placeholder="27" inputmode="numeric" min="1" max="31" style="width:60px;font-size:15px;padding:10px;border:1px solid #ddd;border-radius:8px" />
+          <span style="font-size:13px;color:#666">日</span>
+        </div>
+      </div>
+    </div>
+    <button onclick="addCreditCard()" style="width:100%;padding:11px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;margin-top:6px">＋ カードを追加</button>
+
     <!-- データクリア -->
     <div style="font-size:13px;font-weight:600;color:#555;margin:20px 0 8px">データの管理</div>
     <div style="font-size:12px;color:#aaa;margin-bottom:12px">CSVインポート前などにデータをクリアできます。この操作は元に戻せません。</div>
@@ -149,6 +181,7 @@ input:focus { outline: none; border-color: #555; background: #fff; }
   <div class="tabs">
     <button class="tab active" onclick="showTab('balance')">残高</button>
     <button class="tab" onclick="showTab('input')">入力</button>
+    <button class="tab" onclick="showTab('shift')">シフト</button>
     <button class="tab" onclick="showTab('history')">履歴</button>
     <button class="tab" onclick="showTab('summary')">集計</button>
   </div>
@@ -179,9 +212,13 @@ input:focus { outline: none; border-color: #555; background: #fff; }
           <label>支払い形態</label>
           <div class="btn-group" style="margin-bottom:8px">
             <button class="toggle-btn" id="pay-bank" onclick="selPay('bank')">銀行</button>
+            <button class="toggle-btn" id="pay-card" onclick="selPay('card')">カード</button>
           </div>
           <div id="bank-account-select" style="display:none;margin-bottom:8px">
             <div class="btn-group" id="bank-account-btns" style="flex-wrap:wrap;gap:8px"></div>
+          </div>
+          <div id="card-select" style="display:none;margin-bottom:8px">
+            <div id="card-btns" style="display:flex;flex-wrap:wrap;gap:8px"></div>
           </div>
           <div class="btn-group">
             <button class="toggle-btn sel-wallet" id="pay-wallet" onclick="selPay('wallet')">財布</button>
@@ -232,6 +269,46 @@ input:focus { outline: none; border-color: #555; background: #fff; }
   </div>
 
   <!-- 履歴 -->
+  <!-- シフト -->
+  <div id="tab-shift" class="section">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-size:16px;font-weight:600">シフト・給料計算</span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="shiftCalPrev()" style="background:none;border:1px solid #ddd;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:14px">◀</button>
+        <span id="shift-cal-label" style="font-size:14px;font-weight:500;min-width:72px;text-align:center"></span>
+        <button onclick="shiftCalNext()" style="background:none;border:1px solid #ddd;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:14px">▶</button>
+      </div>
+    </div>
+    <!-- カレンダー -->
+    <div class="card" style="padding:12px">
+      <div id="shift-calendar"></div>
+    </div>
+    <!-- 給料サマリー -->
+    <div id="shift-summary-card" class="card"></div>
+    <!-- シフト入力フォーム（日付タップで展開） -->
+    <div id="shift-input-area" class="card" style="display:none">
+      <div style="font-size:13px;font-weight:600;color:#3949ab;margin-bottom:12px" id="shift-input-label">シフトを追加</div>
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <div style="flex:1">
+          <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;font-weight:500">開始</label>
+          <input type="time" id="shift-start" style="width:100%;font-size:16px;padding:12px;border:1px solid #ddd;border-radius:8px;background:#fafafa;font-family:inherit" />
+        </div>
+        <div style="flex:1">
+          <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;font-weight:500">終了</label>
+          <input type="time" id="shift-end" style="width:100%;font-size:16px;padding:12px;border:1px solid #ddd;border-radius:8px;background:#fafafa;font-family:inherit" />
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="submit-btn" style="background:#3949ab" onclick="addShift()">追加</button>
+        <button class="cncl-btn" style="flex:0.4" onclick="closeShiftInput()">取消</button>
+      </div>
+    </div>
+    <!-- シフト詳細（日付タップで表示） -->
+    <div id="shift-detail-area" class="card" style="display:none">
+      <div id="shift-detail-content"></div>
+    </div>
+  </div>
+
   <div id="tab-history" class="section">
     <div style="display:flex;gap:8px;margin-bottom:12px">
       <button class="filter-btn active" id="hist-tab-records" onclick="setHistTab('records')" style="flex:1;text-align:center">収支履歴</button>
@@ -273,6 +350,7 @@ input:focus { outline: none; border-color: #555; background: #fff; }
       <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:#666">支払い形態ごとの支出</div>
       <div id="pay-break"></div>
     </div>
+    <div id="card-area" style="margin-bottom:12px"></div>
     <button onclick="exportCSV()" style="width:100%;padding:13px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:8px">CSVでエクスポート（バックアップ）</button>
     <label style="width:100%;display:block">
       <div style="width:100%;padding:13px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;text-align:center;box-sizing:border-box">CSVから復元（インポート）</div>
@@ -280,7 +358,7 @@ input:focus { outline: none; border-color: #555; background: #fff; }
     </label>
   </div>
 
-  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 2.9</div>
+  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 3.2</div>
 </div>
 
 <script>
@@ -299,6 +377,9 @@ var records = existing.sort(function(a,b){return new Date(b.date)-new Date(a.dat
 var transfers = JSON.parse(localStorage.getItem('kakeibo_transfers') || '[]');
 var bankAccounts = JSON.parse(localStorage.getItem('kakeibo_banks') || '[]');
 var selectedBankId = null;
+var creditCards = JSON.parse(localStorage.getItem('kakeibo_cards') || '[]');
+var selectedCardId = null;
+function saveCards(){ try{ localStorage.setItem('kakeibo_cards', JSON.stringify(creditCards)); }catch(e){} }
 
 function saveBanks(){ try{ localStorage.setItem('kakeibo_banks', JSON.stringify(bankAccounts)); }catch(e){} }
 
@@ -351,13 +432,284 @@ function applyInitBalance(){
   renderAll();
   alert('初期残高を設定しました！');
 }
+// シフトデータ
+var shifts = JSON.parse(localStorage.getItem('kakeibo_shifts') || '[]');
+var jobSettings = JSON.parse(localStorage.getItem('kakeibo_job') || '{"hourly":0,"transport":0}');
+var shiftCalYear = new Date().getFullYear();
+var shiftCalMonth = new Date().getMonth(); // 0-indexed
+var selectedShiftDate = null;
+
+function saveShifts(){ try{ localStorage.setItem('kakeibo_shifts', JSON.stringify(shifts)); }catch(e){} }
+function saveJobSettings(){
+  var h=parseInt(document.getElementById('set-hourly').value)||0;
+  var t=parseInt(document.getElementById('set-transport').value)||0;
+  jobSettings={hourly:h,transport:t};
+  try{ localStorage.setItem('kakeibo_job', JSON.stringify(jobSettings)); }catch(e){}
+  closeSettings();renderShift();
+  alert('給料設定を保存しました！');
+}
+
+function shiftCalPrev(){ shiftCalMonth--; if(shiftCalMonth<0){shiftCalMonth=11;shiftCalYear--;} renderShift(); }
+function shiftCalNext(){ shiftCalMonth++; if(shiftCalMonth>11){shiftCalMonth=0;shiftCalYear++;} renderShift(); }
+
+function onCalDayClick(dateStr){
+  selectedShiftDate=dateStr;
+  var dayShifts=shifts.filter(function(s){return s.date===dateStr;});
+  var d=new Date(dateStr);
+  var dow=['日','月','火','水','木','金','土'][d.getDay()];
+  var label=(d.getMonth()+1)+'/'+d.getDate()+'('+dow+')';
+  if(dayShifts.length){
+    // 既存シフトの詳細表示
+    document.getElementById('shift-input-area').style.display='none';
+    var det=document.getElementById('shift-detail-area');
+    var detContent=document.getElementById('shift-detail-content');
+    det.style.display='block';
+    detContent.innerHTML='<div style="font-size:13px;font-weight:600;color:#3949ab;margin-bottom:10px">'+label+' のシフト</div>'+
+      dayShifts.map(function(s){
+        var p=calcShiftPay(s);
+        return'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0">'+
+          '<div>'+
+            '<div style="font-size:14px">'+s.start+' 〜 '+s.end+'</div>'+
+            '<div style="font-size:12px;color:#888">'+Math.floor(p.totalMin/60)+'h'+p.totalMin%60+'m'+(p.nightMin>0?' / 深夜'+Math.floor(p.nightMin/60)+'h'+p.nightMin%60+'m':'')+' / '+yen(p.pay+p.transport)+'</div>'+
+          '</div>'+
+          '<button onclick="deleteShift('+s.id+')" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:13px;padding:4px 8px">削除</button>'+
+        '</div>';
+      }).join('')+
+      '<button onclick="openShiftInput(\''+dateStr+'\',\''+label+'\')" style="width:100%;margin-top:10px;padding:9px;background:#f0f4ff;color:#3949ab;border:1px solid #c5cae9;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit">＋ この日にシフトを追加</button>';
+  } else {
+    // 新規追加フォームを表示
+    document.getElementById('shift-detail-area').style.display='none';
+    openShiftInput(dateStr,label);
+  }
+  renderCalendar();
+}
+function openShiftInput(dateStr,label){
+  selectedShiftDate=dateStr;
+  document.getElementById('shift-input-label').textContent=label+' のシフトを追加';
+  document.getElementById('shift-start').value='';
+  document.getElementById('shift-end').value='';
+  document.getElementById('shift-input-area').style.display='block';
+  document.getElementById('shift-input-area').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function closeShiftInput(){
+  document.getElementById('shift-input-area').style.display='none';
+  document.getElementById('shift-detail-area').style.display='none';
+  selectedShiftDate=null;
+  renderCalendar();
+}
+
+function addShift(){
+  var start=document.getElementById('shift-start').value;
+  var end=document.getElementById('shift-end').value;
+  if(!selectedShiftDate||!start||!end){alert('開始・終了を入力してください');return;}
+  shifts.unshift({id:Date.now(),date:selectedShiftDate,start:start,end:end});
+  saveShifts();
+  document.getElementById('shift-input-area').style.display='none';
+  document.getElementById('shift-detail-area').style.display='none';
+  selectedShiftDate=null;
+  renderShift();
+}
+function deleteShift(id){
+  shifts=shifts.filter(function(s){return s.id!==id;});
+  saveShifts();
+  document.getElementById('shift-detail-area').style.display='none';
+  selectedShiftDate=null;
+  renderShift();
+}
+
+function calcShiftPay(s){
+  var startH=parseInt(s.start.split(':')[0]),startM=parseInt(s.start.split(':')[1]);
+  var endH=parseInt(s.end.split(':')[0]),endM=parseInt(s.end.split(':')[1]);
+  var startMin=startH*60+startM;
+  var endMin=endH*60+endM;
+  if(endMin<=startMin) endMin+=24*60;
+  var totalMin=endMin-startMin;
+  var normalMin=0,nightMin=0;
+  for(var m=startMin;m<endMin;m++){
+    var t=m%(24*60);
+    if(t>=22*60||t<5*60) nightMin++;
+    else normalMin++;
+  }
+  var hourly=jobSettings.hourly||0;
+  var normalPay=normalMin/60*hourly;
+  var nightPay=nightMin/60*hourly*1.25;
+  return{totalMin:totalMin,normalMin:normalMin,nightMin:nightMin,pay:Math.floor(normalPay+nightPay),transport:jobSettings.transport||0};
+}
+
+function renderCalendar(){
+  var el=document.getElementById('shift-calendar');
+  if(!el)return;
+  var y=shiftCalYear,m=shiftCalMonth;
+  var first=new Date(y,m,1);
+  var last=new Date(y,m+1,0);
+  var days=['日','月','火','水','木','金','土'];
+  // シフトのある日付セット
+  var shiftDates={};
+  shifts.forEach(function(s){
+    var sm=new Date(s.date);
+    if(sm.getFullYear()===y&&sm.getMonth()===m) shiftDates[s.date]=true;
+  });
+  var today=new Date();
+  var todayStr=today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate());
+
+  var html='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:6px">';
+  days.forEach(function(d,i){
+    html+='<div style="text-align:center;font-size:11px;font-weight:600;color:'+(i===0?'#e53935':i===6?'#1e88e5':'#888')+';padding:4px 0">'+d+'</div>';
+  });
+  html+='</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">';
+  // 空白
+  for(var i=0;i<first.getDay();i++) html+='<div></div>';
+  // 日付
+  for(var d=1;d<=last.getDate();d++){
+    var dateStr=y+'-'+pad(m+1)+'-'+pad(d);
+    var dow=new Date(y,m,d).getDay();
+    var hasShift=shiftDates[dateStr];
+    var isToday=dateStr===todayStr;
+    var isSel=dateStr===selectedShiftDate;
+    var color=dow===0?'#e53935':dow===6?'#1e88e5':'#1a1a1a';
+    html+='<div onclick="onCalDayClick(\''+dateStr+'\')" style="'+
+      'text-align:center;padding:6px 2px;border-radius:8px;cursor:pointer;'+
+      'background:'+(isSel?'#3949ab':isToday?'#e8eaf6':hasShift?'#c5cae9':'transparent')+';'+
+      'color:'+(isSel?'#fff':color)+';'+
+      'font-weight:'+(isToday||isSel?'700':'400')+';'+
+      'font-size:14px;'+
+      'border:'+(isToday&&!isSel?'1px solid #3949ab':'1px solid transparent')+
+    '">'+d+(hasShift?'<div style="width:5px;height:5px;border-radius:50%;background:'+(isSel?'#fff':'#3949ab')+';margin:2px auto 0"></div>':'<div style="height:7px"></div>')+'</div>';
+  }
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+
+function addShift(){
+  var start=document.getElementById('shift-start').value;
+  var end=document.getElementById('shift-end').value;
+  if(!selectedShiftDate||!start||!end){alert('開始・終了を入力してください');return;}
+  shifts.unshift({id:Date.now(),date:selectedShiftDate,start:start,end:end});
+  saveShifts();
+  document.getElementById('shift-input-area').style.display='none';
+  document.getElementById('shift-detail-area').style.display='none';
+  selectedShiftDate=null;
+  renderShift();
+}
+function deleteShift(id){
+  shifts=shifts.filter(function(s){return s.id!==id;});
+  saveShifts();
+  document.getElementById('shift-detail-area').style.display='none';
+  selectedShiftDate=null;
+  renderShift();
+}
+function renderShift(){
+  var labelEl=document.getElementById('shift-cal-label');
+  if(labelEl) labelEl.textContent=shiftCalYear+'/'+(shiftCalMonth+1)+'月';
+  renderCalendar();
+  var monthShifts=shifts.filter(function(s){
+    var d=new Date(s.date);return d.getFullYear()===shiftCalYear&&d.getMonth()===shiftCalMonth;
+  });
+  var totalPay=0,totalMin=0,totalNightMin=0,totalTransport=0;
+  monthShifts.forEach(function(s){
+    var p=calcShiftPay(s);
+    totalPay+=p.pay;totalMin+=p.totalMin;totalNightMin+=p.nightMin;totalTransport+=p.transport;
+  });
+  var grossPay=totalPay+totalTransport;
+  var summaryEl=document.getElementById('shift-summary-card');
+  if(summaryEl){
+    summaryEl.innerHTML=
+      '<div style="font-size:13px;font-weight:600;color:#3949ab;margin-bottom:12px">'+shiftCalYear+'/'+(shiftCalMonth+1)+'月 の給料予測</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'+
+        '<div style="background:#f0f4ff;border-radius:8px;padding:12px;text-align:center">'+
+          '<div style="font-size:11px;color:#888;margin-bottom:4px">シフト数</div>'+
+          '<div style="font-size:20px;font-weight:700;color:#3949ab">'+monthShifts.length+'回</div>'+
+        '</div>'+
+        '<div style="background:#f0f4ff;border-radius:8px;padding:12px;text-align:center">'+
+          '<div style="font-size:11px;color:#888;margin-bottom:4px">合計時間</div>'+
+          '<div style="font-size:20px;font-weight:700;color:#3949ab">'+Math.floor(totalMin/60)+'h'+totalMin%60+'m</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="background:#f0f4ff;border-radius:8px;padding:14px">'+
+        '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px">'+
+          '<span style="color:#666">時給分</span><span>'+yen(totalPay)+'</span>'+
+        '</div>'+
+        (totalNightMin>0?'<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px">'+
+          '<span style="color:#666">うち深夜割増</span><span style="color:#e65100">（×1.25 込み）</span>'+
+        '</div>':'')+
+        (totalTransport>0?'<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px">'+
+          '<span style="color:#666">交通費（'+monthShifts.length+'回分）</span><span>+'+yen(totalTransport)+'</span>'+
+        '</div>':'')+
+        '<div style="border-top:1px solid #c5cae9;margin:8px 0"></div>'+
+        '<div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700">'+
+          '<span style="color:#3949ab">予測合計</span><span style="color:#3949ab">'+yen(grossPay)+'</span>'+
+        '</div>'+
+        (!jobSettings.hourly?'<div style="font-size:12px;color:#aaa;margin-top:8px">設定から時給を登録してください</div>':'')+
+      '</div>';
+  }
+}
+
 function openSettings(){
   renderSettingsBankList();
+  renderSettingsCardList();
+  // 引落とし口座セレクトを更新
+  var sel=document.getElementById('new-card-bank');
+  if(sel){
+    sel.innerHTML='<option value="">引落とし口座を選択</option>'+
+      bankAccounts.map(function(b){return'<option value="'+b.id+'">'+b.name+'</option>';}).join('');
+  }
+  document.getElementById('set-hourly').value=jobSettings.hourly||'';
+  document.getElementById('set-transport').value=jobSettings.transport||'';
   document.getElementById('settings-overlay').classList.add('open');
 }
 function closeSettings(){
   document.getElementById('settings-overlay').classList.remove('open');
   renderAll();
+}
+function renderSettingsCardList(){
+  var el=document.getElementById('settings-card-list');
+  if(!el)return;
+  if(!creditCards.length){el.innerHTML='<div style="font-size:13px;color:#aaa;margin-bottom:8px">カードが登録されていません</div>';return;}
+  el.innerHTML=creditCards.map(function(c,i){
+    var bank=bankAccounts.find(function(b){return b.id===c.bankId;});
+    return'<div style="display:flex;align-items:center;gap:8px;padding:10px;background:#fff8f0;border-radius:8px;margin-bottom:6px">'+
+      '<div style="flex:1">'+
+        '<div style="font-size:14px;font-weight:500">'+c.name+'</div>'+
+        '<div style="font-size:12px;color:#aaa">'+(bank?bank.name:'口座未設定')+' / 毎月'+c.day+'日引落とし</div>'+
+      '</div>'+
+      '<button onclick="removeCreditCard('+i+')" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:18px;padding:0 4px">×</button>'+
+    '</div>';
+  }).join('');
+}
+function addCreditCard(){
+  var name=document.getElementById('new-card-name').value.trim();
+  var bankId=parseInt(document.getElementById('new-card-bank').value)||null;
+  var day=parseInt(document.getElementById('new-card-day').value)||27;
+  if(!name){alert('カード名を入力してください');return;}
+  creditCards.push({id:Date.now(),name:name,bankId:bankId,day:day});
+  saveCards();
+  document.getElementById('new-card-name').value='';
+  document.getElementById('new-card-day').value='';
+  renderSettingsCardList();
+  renderAll();
+}
+function removeCreditCard(i){
+  creditCards.splice(i,1);
+  saveCards();
+  renderSettingsCardList();
+  renderAll();
+}
+function updateCardBtns(){
+  var area=document.getElementById('card-select');
+  var btns=document.getElementById('card-btns');
+  if(!area||!btns)return;
+  if(!creditCards.length){area.style.display='none';return;}
+  area.style.display='block';
+  btns.innerHTML=creditCards.map(function(c){
+    var sel=selectedCardId===c.id;
+    return'<button onclick="selCard('+c.id+')" style="padding:8px 14px;border:1px solid '+(sel?'#a855f7':'#ddd')+';border-radius:8px;font-size:13px;background:'+(sel?'#f3e8ff':'#f5f5f5')+';color:'+(sel?'#7c3aed':'#888')+';cursor:pointer;font-family:inherit;font-weight:'+(sel?'600':'400')+'">'+c.name+'</button>';
+  }).join('');
+  if(!selectedCardId&&creditCards.length) selCard(creditCards[0].id);
+}
+function selCard(id){
+  selectedCardId=id;
+  updateCardBtns();
 }
 function renderSettingsBankList(){
   var el=document.getElementById('settings-bank-list');
@@ -436,15 +788,16 @@ function selType(t){
 }
 function selPay(p){
   selPay_=p;
-  ['bank','wallet','paypay','suica'].forEach(function(x){
+  ['bank','card','wallet','paypay','suica'].forEach(function(x){
     var el=document.getElementById('pay-'+x);
     if(!el)return;
     el.className='toggle-btn'+(x===p?' sel-'+x:'');
   });
-  // 銀行選択時は口座ボタンを表示
   var bankArea=document.getElementById('bank-account-select');
-  if(p==='bank'){updateBankAccountBtns();}
-  else{if(bankArea)bankArea.style.display='none';}
+  var cardArea=document.getElementById('card-select');
+  if(p==='bank'){updateBankAccountBtns();if(cardArea)cardArea.style.display='none';}
+  else if(p==='card'){updateCardBtns();if(bankArea)bankArea.style.display='none';}
+  else{if(bankArea)bankArea.style.display='none';if(cardArea)cardArea.style.display='none';}
 }
 function selFrom(p){
   trFrom_=p;
@@ -498,17 +851,18 @@ function setMonthFilter(m){
   renderSummary();
 }
 function showTab(t){
-  ['balance','input','history','summary'].forEach(function(x){
+  ['balance','input','shift','history','summary'].forEach(function(x){
     var el=document.getElementById('tab-'+x);
     if(el)el.classList.toggle('active',x===t);
   });
   var tabBtns=document.querySelectorAll('.tabs .tab');
-  var order=['balance','input','history','summary'];
+  var order=['balance','input','shift','history','summary'];
   tabBtns.forEach(function(el,i){
     el.classList.toggle('active',order[i]===t);
   });
+  if(t==='shift')renderShift();
   if(t==='history')renderHistory();
-  if(t==='summary')renderSummary();
+  if(t==='summary'){renderSummary();renderCard();}
 }
 function toggleGraph(){
   graphOpen=!graphOpen;
@@ -523,6 +877,7 @@ function addRecord(){
   if(!amt||amt<=0){alert('金額を入力してください');return;}
   var rec={id:Date.now(),type:selType_,amount:amt,pay:selPay_,note:note,date:new Date().toISOString()};
   if(selPay_==='bank'&&selectedBankId) rec.bankId=selectedBankId;
+  if(selPay_==='card'&&selectedCardId) rec.cardId=selectedCardId;
   records.unshift(rec);
   save();document.getElementById('amount').value='';document.getElementById('note').value='';
   renderAll();
@@ -555,13 +910,21 @@ function deleteTransfer(id){
   transfers=transfers.filter(function(t){return t.id!==id;});
   saveTransfers();renderAll();
 }
-function toggleEdit(id){editingId=editingId===id?null:id;renderHistory();}
+function toggleEdit(id){editingId=editingId===id?null:id;editMode='date';renderHistory();renderRecent();}
+function toggleEditAmount(id){editingId=editingId===id?null:id;editMode='amount';renderHistory();renderRecent();}
+var editMode='date';
 function saveDate(id){
   var input=document.getElementById('di-'+id);if(!input||!input.value)return;
   var r=records.find(function(r){return r.id===id;});if(!r)return;
   var orig=new Date(r.date);var parts=input.value.split('-').map(Number);
   orig.setFullYear(parts[0]);orig.setMonth(parts[1]-1);orig.setDate(parts[2]);
   r.date=orig.toISOString();editingId=null;save();renderAll();
+}
+function saveAmount(id){
+  var input=document.getElementById('ai-'+id);if(!input)return;
+  var amt=parseInt(input.value);if(!amt||amt<=0){alert('正しい金額を入力してください');return;}
+  var r=records.find(function(r){return r.id===id;});if(!r)return;
+  r.amount=amt;editingId=null;save();renderAll();
 }
 function importCSV(e){
   var file=e.target.files[0];if(!file)return;
@@ -617,8 +980,17 @@ function pad(n){return String(n).padStart(2,'0');}
 function fmt(iso){var d=new Date(iso);return{date:(d.getMonth()+1)+'/'+d.getDate(),time:pad(d.getHours())+':'+pad(d.getMinutes())};}
 function fmtYM(iso){var d=new Date(iso);return d.getFullYear()+'/'+pad(d.getMonth()+1);}
 function fmtDay(iso){var d=new Date(iso);return d.getFullYear()+'/'+pad(d.getMonth()+1)+'/'+pad(d.getDate());}
-function payLbl(p){return{wallet:'財布',paypay:'PayPay',suica:'Suica',bank:'銀行'}[p]||p;}
-function payTag(p){
+function payLbl(p,cardId){
+  if(p==='card'){
+    var c=creditCards.find(function(c){return c.id===cardId;});
+    return c?c.name:'カード';
+  }
+  return{wallet:'財布',paypay:'PayPay',suica:'Suica',bank:'銀行'}[p]||p;
+}
+function payTag(p,cardId){
+  if(p==='card'){
+    return'<span class="pay-tag" style="background:#f3e8ff;color:#7c3aed">'+payLbl(p,cardId)+'</span>';
+  }
   var bg={wallet:'#555',paypay:'#FF0033',suica:'#00FA9A',bank:'#ffca28'};
   var col={wallet:'#fff',paypay:'#fff',suica:'#005c38',bank:'#5f4000'};
   return'<span class="pay-tag" style="background:'+bg[p]+';color:'+col[p]+'">'+payLbl(p)+'</span>';
@@ -627,9 +999,9 @@ function yen(n){return '\u00a5'+Math.abs(n).toLocaleString();}
 
 function renderAll(){
   renderBalance();renderRecent();renderTransfers();
-  if(document.getElementById('tab-balance').classList.contains('active'))renderBalance();
+  if(document.getElementById('tab-shift')&&document.getElementById('tab-shift').classList.contains('active'))renderShift();
   if(document.getElementById('tab-history').classList.contains('active'))renderHistory();
-  if(document.getElementById('tab-summary').classList.contains('active'))renderSummary();
+  if(document.getElementById('tab-summary').classList.contains('active')){renderSummary();renderCard();}
 }
 function renderBalance(){
   var now=new Date();
@@ -706,6 +1078,30 @@ function renderBalance(){
     '</div>';
   });
   html+='</div>';
+  // クレジットカードの未払い額
+  if(creditCards.length){
+    var now2=new Date();
+    var curYM2=now2.getFullYear()+'/'+pad(now2.getMonth()+1);
+    html+='<div style="margin-top:10px">';
+    creditCards.forEach(function(c){
+      var unpaid=records.filter(function(r){return r.pay==='card'&&r.cardId===c.id&&r.type==='expense'&&fmtYM(r.date)===curYM2;}).reduce(function(s,r){return s+r.amount;},0);
+      var billingDate=new Date(now2.getFullYear(),now2.getMonth(),c.day);
+      if(billingDate<now2) billingDate=new Date(now2.getFullYear(),now2.getMonth()+1,c.day);
+      var daysLeft=Math.ceil((billingDate-now2)/(1000*60*60*24));
+      var urgent=daysLeft<=7&&unpaid>0;
+      html+='<div style="background:#fff;border-radius:12px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;'+(urgent?'border:1px solid #a855f7;':'')+'">'+
+        '<div>'+
+          '<span style="display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;background:#f3e8ff;color:#7c3aed;font-weight:600;margin-bottom:4px">'+c.name+'</span>'+
+          '<div style="font-size:11px;color:#aaa">'+(urgent?'⚠ '+daysLeft+'日後引落とし':'引落とし '+c.day+'日')+'</div>'+
+        '</div>'+
+        '<div style="text-align:right">'+
+          '<div style="font-size:16px;font-weight:700;color:'+(unpaid>0?'#7c3aed':'#aaa')+'">'+yen(unpaid)+'</div>'+
+          '<div style="font-size:10px;color:#aaa">今月使用額</div>'+
+        '</div>'+
+      '</div>';
+    });
+    html+='</div>';
+  }
   document.getElementById('balance-area').innerHTML=html;
 }
 function recordHTML(r,showBtns){
@@ -713,15 +1109,90 @@ function recordHTML(r,showBtns){
   var bg=r.type==='income'?'background:#f0fff4;margin:0 -16px;padding:0 16px;border-radius:8px;':'';
   var html='<div class="record" style="'+bg+'"><div class="record-top">'+
     '<div class="record-date">'+ts.date+'<br><span style="font-size:11px;color:#bbb">'+ts.time+'</span></div>'+
-    '<div class="record-mid"><div class="record-name">'+r.note+'</div>'+payTag(r.pay)+'</div>'+
+    '<div class="record-mid"><div class="record-name">'+r.note+'</div>'+payTag(r.pay,r.cardId)+'</div>'+
     '<div class="record-amount" style="color:'+col+'">'+sign+yen(r.amount)+'</div></div>';
   if(showBtns){
-    html+='<div class="record-btns"><button class="sm-btn" onclick="toggleEdit('+r.id+')">日付修正</button><button class="sm-btn del" onclick="askDelete('+r.id+')">削除</button></div>';
-    if(isEdit)html+='<div class="edit-row"><span style="font-size:13px;color:#666">日付：</span><input type="date" id="di-'+r.id+'" value="'+toDateVal(r.date)+'" /><button class="save-btn" onclick="saveDate('+r.id+')">保存</button><button class="cncl-btn" onclick="toggleEdit('+r.id+')">取消</button></div>';
+    html+='<div class="record-btns"><button class="sm-btn" onclick="toggleEdit('+r.id+')">日付修正</button><button class="sm-btn" onclick="toggleEditAmount('+r.id+')">金額修正</button><button class="sm-btn del" onclick="askDelete('+r.id+')">削除</button></div>';
+    if(isEdit&&editMode==='date')html+='<div class="edit-row"><span style="font-size:13px;color:#666">日付：</span><input type="date" id="di-'+r.id+'" value="'+toDateVal(r.date)+'" /><button class="save-btn" onclick="saveDate('+r.id+')">保存</button><button class="cncl-btn" onclick="toggleEdit('+r.id+')">取消</button></div>';
+    if(isEdit&&editMode==='amount')html+='<div class="edit-row"><span style="font-size:13px;color:#666">金額：</span><input type="number" id="ai-'+r.id+'" value="'+r.amount+'" inputmode="numeric" style="width:120px" /><button class="save-btn" onclick="saveAmount('+r.id+')">保存</button><button class="cncl-btn" onclick="toggleEditAmount('+r.id+')">取消</button></div>';
   }
   return html+'</div>';
 }
 function toDateVal(iso){var d=new Date(iso);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function renderCard(){
+  var el=document.getElementById('card-area');
+  if(!el)return;
+  if(!creditCards.length){
+    el.innerHTML='<div class="card"><div class="empty">設定からカードを登録してください</div></div>';
+    return;
+  }
+  var now=new Date();
+  var curYM=now.getFullYear()+'/'+pad(now.getMonth()+1);
+  var html='';
+  creditCards.forEach(function(c){
+    var bank=bankAccounts.find(function(b){return b.id===c.bankId;});
+    // 今月の未払い額
+    var unpaid=records.filter(function(r){return r.pay==='card'&&r.cardId===c.id&&r.type==='expense'&&fmtYM(r.date)===curYM;}).reduce(function(s,r){return s+r.amount;},0);
+    // 先月の未払い額（次の引落とし対象）
+    var prevDate=new Date(now.getFullYear(),now.getMonth()-1,1);
+    var prevYM=prevDate.getFullYear()+'/'+pad(prevDate.getMonth()+1);
+    var nextBilling=records.filter(function(r){return r.pay==='card'&&r.cardId===c.id&&r.type==='expense'&&fmtYM(r.date)===prevYM;}).reduce(function(s,r){return s+r.amount;},0);
+    // 引落とし日まで何日？
+    var billingDate=new Date(now.getFullYear(),now.getMonth(),c.day);
+    if(billingDate<now) billingDate=new Date(now.getFullYear(),now.getMonth()+1,c.day);
+    var daysLeft=Math.ceil((billingDate-now)/(1000*60*60*24));
+    var urgent=daysLeft<=7&&nextBilling>0;
+    html+='<div class="card" style="margin-bottom:12px;'+(urgent?'border:1px solid #a855f7;':'')+'">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
+        '<span style="display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;background:#f3e8ff;color:#7c3aed;font-weight:700">'+c.name+'</span>'+
+        (urgent?'<span style="font-size:11px;color:#7c3aed;font-weight:600">⚠ '+daysLeft+'日後引落とし</span>':'<span style="font-size:11px;color:#aaa">引落とし '+c.day+'日</span>')+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'+
+        '<div style="background:#fff8f0;border-radius:8px;padding:10px;text-align:center">'+
+          '<div style="font-size:11px;color:#888;margin-bottom:4px">今月の使用額</div>'+
+          '<div style="font-size:18px;font-weight:700;color:#7c3aed">'+yen(unpaid)+'</div>'+
+        '</div>'+
+        '<div style="background:'+(nextBilling>0?'#f3e8ff':'#f9f9f9')+';border-radius:8px;padding:10px;text-align:center">'+
+          '<div style="font-size:11px;color:#888;margin-bottom:4px">次回引落とし予定</div>'+
+          '<div style="font-size:18px;font-weight:700;color:'+(nextBilling>0?'#c62828':'#aaa')+'">'+yen(nextBilling)+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="font-size:12px;color:#aaa;margin-bottom:8px">引落とし口座：'+(bank?bank.name:'未設定')+'</div>'+
+      (nextBilling>0&&bank?
+        '<button onclick="processCardBilling('+c.id+')" style="width:100%;padding:10px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit">引落とし処理（'+yen(nextBilling)+'）</button>'
+        :'<button style="width:100%;padding:10px;background:#f5f5f5;color:#aaa;border:1px solid #eee;border-radius:8px;font-size:14px;font-family:inherit" disabled>引落とし予定なし</button>')+
+      // 今月の明細
+      '<div style="margin-top:12px;font-size:12px;font-weight:600;color:#666;margin-bottom:6px">今月の使用明細</div>'+
+      (function(){
+        var items=records.filter(function(r){return r.pay==='card'&&r.cardId===c.id&&r.type==='expense'&&fmtYM(r.date)===curYM;});
+        if(!items.length)return'<div style="font-size:13px;color:#aaa;text-align:center;padding:8px">使用履歴なし</div>';
+        return items.map(function(r){
+          var ts=fmt(r.date);
+          return'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f5f5f5;font-size:13px">'+
+            '<div><span style="color:#999">'+ts.date+'</span> <span>'+r.note+'</span></div>'+
+            '<span style="color:#7c3aed;font-weight:500">-'+yen(r.amount)+'</span>'+
+          '</div>';
+        }).join('');
+      })()+
+    '</div>';
+  });
+  el.innerHTML=html;
+}
+function processCardBilling(cardId){
+  var c=creditCards.find(function(c){return c.id===cardId;});
+  if(!c)return;
+  var bank=bankAccounts.find(function(b){return b.id===c.bankId;});
+  if(!bank){alert('引落とし口座が設定されていません');return;}
+  var now=new Date();
+  var prevDate=new Date(now.getFullYear(),now.getMonth()-1,1);
+  var prevYM=prevDate.getFullYear()+'/'+pad(prevDate.getMonth()+1);
+  var amount=records.filter(function(r){return r.pay==='card'&&r.cardId===cardId&&r.type==='expense'&&fmtYM(r.date)===prevYM;}).reduce(function(s,r){return s+r.amount;},0);
+  if(!amount){alert('引落とし額がありません');return;}
+  // 銀行からの支出として記録
+  records.unshift({id:Date.now(),type:'expense',amount:amount,pay:'bank',bankId:c.bankId,note:c.name+'引落とし',date:new Date().toISOString()});
+  save();renderAll();renderCard();
+  alert(c.name+'の引落とし処理（'+yen(amount)+'）を完了しました！');
+}
 function renderRecent(){
   var el=document.getElementById('recent-area');if(!records.length){el.innerHTML='';return;}
   el.innerHTML='<div style="font-size:13px;color:#888;margin-bottom:8px;font-weight:500">最近の記録</div><div class="card">'+records.slice(0,5).map(function(r){return recordHTML(r,true);}).join('')+'</div>';
