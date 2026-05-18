@@ -1150,16 +1150,16 @@ function recordHTML(r,showBtns){
     '<div class="record-mid"><div class="record-name">'+r.note+'</div>'+payTag(r.pay,r.cardId)+'</div>'+
     '<div class="record-amount" style="color:'+col+'">'+sign+yen(r.amount)+'</div></div>';
   if(showBtns){
-    var sid='"'+String(r.id)+'"';
+    var sid=String(r.id);
     html+='<div class="record-btns">'+
-      '<button class="sm-btn" onclick="toggleEdit('+sid+')">日付修正</button>'+
-      '<button class="sm-btn" onclick="toggleEditAmount('+sid+')">金額修正</button>'+
-      '<button class="sm-btn" onclick="toggleEditPay('+sid+')">形態修正</button>'+
-      '<button class="sm-btn del" onclick="askDelete('+r.id+')">削除</button>'+
+      '<button class="sm-btn edit-btn" data-id="'+sid+'" data-mode="date">日付修正</button>'+
+      '<button class="sm-btn edit-btn" data-id="'+sid+'" data-mode="amount">金額修正</button>'+
+      '<button class="sm-btn edit-btn" data-id="'+sid+'" data-mode="pay">形態修正</button>'+
+      '<button class="sm-btn del delete-btn" data-id="'+sid+'">削除</button>'+
     '</div>';
-    if(isEdit&&editMode==='date')html+='<div class="edit-row"><span style="font-size:13px;color:#666">日付：</span><input type="date" id="di-'+r.id+'" value="'+toDateVal(r.date)+'" /><button class="save-btn" onclick="saveDate('+sid+')">保存</button><button class="cncl-btn" onclick="toggleEdit('+sid+')">取消</button></div>';
-    if(isEdit&&editMode==='amount')html+='<div class="edit-row"><span style="font-size:13px;color:#666">金額：</span><input type="number" id="ai-'+r.id+'" value="'+r.amount+'" inputmode="numeric" style="width:120px" /><button class="save-btn" onclick="saveAmount('+sid+')">保存</button><button class="cncl-btn" onclick="toggleEditAmount('+sid+')">取消</button></div>';
-    if(isEdit&&editMode==='pay')html+='<div class="edit-row"><span style="font-size:13px;color:#666">形態：</span><select id="pi-'+r.id+'" style="flex:1;font-size:15px;padding:8px;border:1px solid #ddd;border-radius:8px;background:#fff;font-family:inherit"><option value="wallet"'+(r.pay==='wallet'?' selected':'')+'>財布</option><option value="paypay"'+(r.pay==='paypay'?' selected':'')+'>PayPay</option><option value="suica"'+(r.pay==='suica'?' selected':'')+'>Suica</option><option value="bank"'+(r.pay==='bank'?' selected':'')+'>銀行</option><option value="card"'+(r.pay==='card'?' selected':'')+'>カード</option></select><button class="save-btn" onclick="savePay('+sid+')">保存</button><button class="cncl-btn" onclick="toggleEditPay('+sid+')">取消</button></div>';
+    if(isEdit&&editMode==='date')html+='<div class="edit-row"><span style="font-size:13px;color:#666">日付：</span><input type="date" id="di-'+sid+'" value="'+toDateVal(r.date)+'" /><button class="save-btn save-edit-btn" data-id="'+sid+'" data-mode="date">保存</button><button class="cncl-btn cancel-edit-btn" data-id="'+sid+'" data-mode="date">取消</button></div>';
+    if(isEdit&&editMode==='amount')html+='<div class="edit-row"><span style="font-size:13px;color:#666">金額：</span><input type="number" id="ai-'+sid+'" value="'+r.amount+'" inputmode="numeric" style="width:120px" /><button class="save-btn save-edit-btn" data-id="'+sid+'" data-mode="amount">保存</button><button class="cncl-btn cancel-edit-btn" data-id="'+sid+'" data-mode="amount">取消</button></div>';
+    if(isEdit&&editMode==='pay')html+='<div class="edit-row"><span style="font-size:13px;color:#666">形態：</span><select id="pi-'+sid+'" style="flex:1;font-size:15px;padding:8px;border:1px solid #ddd;border-radius:8px;background:#fff;font-family:inherit"><option value="wallet"'+(r.pay==='wallet'?' selected':'')+'>財布</option><option value="paypay"'+(r.pay==='paypay'?' selected':'')+'>PayPay</option><option value="suica"'+(r.pay==='suica'?' selected':'')+'>Suica</option><option value="bank"'+(r.pay==='bank'?' selected':'')+'>銀行</option><option value="card"'+(r.pay==='card'?' selected':'')+'>カード</option></select><button class="save-btn save-edit-btn" data-id="'+sid+'" data-mode="pay">保存</button><button class="cncl-btn cancel-edit-btn" data-id="'+sid+'" data-mode="pay">取消</button></div>';
   }
   return html+'</div>';
 }
@@ -1383,7 +1383,54 @@ function renderGraph(){
   });
 }
 
-renderAll();selPay('wallet');
+document.addEventListener('click', function(e){
+  var btn=e.target;
+  var id=btn.getAttribute('data-id');
+  var mode=btn.getAttribute('data-mode');
+  if(!id) return;
+
+  if(btn.classList.contains('edit-btn')){
+    var sid=String(id);
+    if(editingId===sid && editMode===mode){ editingId=null; }
+    else{ editingId=sid; editMode=mode; }
+    renderHistory(); renderRecent();
+    return;
+  }
+  if(btn.classList.contains('cancel-edit-btn')){
+    editingId=null; renderHistory(); renderRecent(); return;
+  }
+  if(btn.classList.contains('delete-btn')){
+    askDelete(Number(id)); return;
+  }
+  if(btn.classList.contains('save-edit-btn')){
+    if(mode==='date'){
+      var input=document.getElementById('di-'+id); if(!input||!input.value) return;
+      var parts=input.value.split('-');
+      for(var i=0;i<records.length;i++){
+        if(String(records[i].id)===id){
+          var orig=new Date(records[i].date);
+          orig.setFullYear(parseInt(parts[0])); orig.setMonth(parseInt(parts[1])-1); orig.setDate(parseInt(parts[2]));
+          records[i].date=orig.toISOString(); break;
+        }
+      }
+    } else if(mode==='amount'){
+      var input=document.getElementById('ai-'+id); if(!input) return;
+      var amt=parseInt(input.value); if(!amt||amt<=0){alert('正しい金額を入力してください');return;}
+      for(var i=0;i<records.length;i++){
+        if(String(records[i].id)===id){ records[i].amount=amt; break; }
+      }
+    } else if(mode==='pay'){
+      var sel=document.getElementById('pi-'+id); if(!sel) return;
+      for(var i=0;i<records.length;i++){
+        if(String(records[i].id)===id){ records[i].pay=sel.value; break; }
+      }
+    }
+    editingId=null;
+    try{ localStorage.setItem('kakeibo_v1', JSON.stringify(records)); }catch(e){}
+    renderRecent(); renderHistory(); renderBalance(); renderSummary();
+  }
+});
+renderAll(); selPay('wallet');
 </script>
 </body>
 </html>
