@@ -356,7 +356,7 @@ input:focus { outline: none; border-color: #555; background: #fff; }
     <input type="file" id="csv-import-input" accept=".csv,text/csv,text/plain,*/*" onchange="importCSV(event)" style="display:none" />
   </div>
 
-  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.0</div>
+  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.1</div>
 </div>
 
 <script>
@@ -928,7 +928,8 @@ function saveAmount(id){
   editingId=null;save();renderHistory();renderRecent();renderBalance();
 }
 function exportCSV(){
-  var rows=['\uFEFF日時,種別,金額,支払い形態,口座・カード名,内容'];
+  // v2フォーマット: id列を追加して復元時の重複チェックを正確にする
+  var rows=['\uFEFFid,日時,種別,金額,支払い形態,口座・カード名,内容'];
   records.slice().sort(function(a,b){return new Date(a.date)-new Date(b.date);}).forEach(function(r){
     var d=new Date(r.date);
     var dt=d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate()+' '+pad(d.getHours())+':'+pad(d.getMinutes());
@@ -941,7 +942,7 @@ function exportCSV(){
       payName=c?c.name:'';
     }
     var payLblMap={wallet:'財布',paypay:'PayPay',suica:'Suica',bank:'銀行',card:'カード'};
-    rows.push(dt+','+(r.type==='income'?'収入':'支出')+','+r.amount+','+(payLblMap[r.pay]||r.pay)+','+payName+','+(r.note||'').replace(/,/g,'、'));
+    rows.push(r.id+','+dt+','+(r.type==='income'?'収入':'支出')+','+r.amount+','+(payLblMap[r.pay]||r.pay)+','+payName+','+(r.note||'').replace(/,/g,'、'));
   });
   var blob=new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8;'});
   var url=URL.createObjectURL(blob);var a=document.createElement('a');
@@ -953,50 +954,104 @@ function importCSV(e){
   reader.onload=function(ev){
     var lines=ev.target.result.replace(/^\uFEFF/,'').split('\n').filter(function(l){return l.trim();});
     if(lines.length<2){alert('データが見つかりませんでした');return;}
+
+    // ヘッダー解析：v2(id列あり) / v1(id列なし) を自動判別
+    var header=lines[0].split(',').map(function(h){return h.trim();});
+    var isV2=(header[0]==='id');
+    // v2: [id, 日時, 種別, 金額, 支払い形態, 口座・カード名, 内容]
+    // v1: [日時, 種別, 金額, 支払い形態, 口座・カード名, 内容]
+    var colOffset=isV2?1:0;
+
     var payMap={'財布':'wallet','PayPay':'paypay','Suica':'suica','銀行':'bank','カード':'card'};
     var typeMap={'収入':'income','支出':'expense'};
     var imported=[];
+    var bankNamesInCSV=[];
+
     for(var i=1;i<lines.length;i++){
-      var cols=lines[i].split(',');if(cols.length<4)continue;
-      var type=typeMap[cols[1].trim()];
-      var amount=parseInt(cols[2].trim());
-      var pay=payMap[cols[3].trim()];
+      var cols=lines[i].split(',');
+      var minCols=isV2?5:4;
+      if(cols.length<minCols)continue;
+
+      var csvId=isV2?cols[0].trim():null;
+      var type=typeMap[(cols[colOffset+1]||'').trim()];
+      var amount=parseInt((cols[colOffset+2]||'').trim());
+      var pay=payMap[(cols[colOffset+3]||'').trim()];
       if(!type||!amount||!pay)continue;
-      var dateStr=cols[0].trim();
+
+      var dateStr=(cols[colOffset]||'').trim();
       var d;
       try{
         var sp=dateStr.split(' ');
         var dp=sp[0].split('/');
         var tp=sp[1]?sp[1].split(':'):[0,0];
-        d=new Date(parseInt(dp[0]),parseInt(dp[1])-1,parseInt(dp[2]),parseInt(tp[0]),parseInt(tp[1]));
+        d=new Date(parseInt(dp[0]),parseInt(dp[1])-1,parseInt(dp[2]),parseInt(tp[0])||0,parseInt(tp[1])||0);
       }catch(err){continue;}
       if(isNaN(d.getTime()))continue;
-      var rec={id:d.getTime()+i,type:type,amount:amount,pay:pay,date:d.toISOString()};
-      // 列数で新旧形式を判別
-      var isNewFormat=cols.length>=6;
-      if(isNewFormat){
-        rec.note=(cols[5]||'').trim();
-        var subName=(cols[4]||'').trim();
+
+      // IDの決定：v2はCSVのidをそのまま使う（復元後も同一IDになるため残高がずれない）
+      var recId=isV2&&csvId?parseFloat(csvId):(d.getTime()+i);
+      var rec={id:recId,type:type,amount:amount,pay:pay,date:d.toISOString()};
+
+      var hasSubName=isV2?(cols.length>=7):(cols.length>=6);
+      if(hasSubName){
+        rec.note=(cols[colOffset+(isV2?5:4)]||'').trim();
+        var subName=(cols[colOffset+(isV2?4:3)]||'').trim();
         if(pay==='bank'&&subName){
+          if(bankNamesInCSV.indexOf(subName)===-1)bankNamesInCSV.push(subName);
           var b=bankAccounts.find(function(b){return b.name===subName;});
           if(b) rec.bankId=b.id;
+          // 口座が見つからなくても記録は取り込む（後で警告）
         } else if(pay==='card'&&subName){
           var c=creditCards.find(function(c){return c.name===subName;});
           if(c) rec.cardId=c.id;
         }
       } else {
-        // 旧形式：note=cols[4]、bankIdなし（銀行残高には反映されるが口座紐付けなし）
-        rec.note=(cols[4]||'').trim();
+        rec.note=(cols[colOffset+3]||'').trim();
       }
       imported.push(rec);
     }
+
     if(!imported.length){alert('有効なデータが見つかりませんでした');return;}
-    var existKeys=records.map(function(r){return r.date+r.amount+r.pay+r.type;});
-    var added=0;
-    imported.forEach(function(r){var k=r.date+r.amount+r.pay+r.type;if(existKeys.indexOf(k)===-1){records.push(r);added++;}});
+
+    // 銀行口座の事前チェック：CSVに銀行記録があるのに口座が未設定の場合は警告
+    if(bankNamesInCSV.length){
+      var missingBanks=bankNamesInCSV.filter(function(name){
+        return !bankAccounts.find(function(b){return b.name===name;});
+      });
+      if(missingBanks.length){
+        var msg='⚠ 銀行口座の設定が必要です\n\n以下の口座がCSVに含まれていますが、設定に登録されていません：\n\n';
+        missingBanks.forEach(function(n){msg+='  ・'+n+'\n';});
+        msg+='\n設定→銀行口座の管理 から先に口座を追加してから、\nもう一度インポートしてください。\n\nこのまま続けると銀行残高が正しく反映されません。';
+        if(!confirm(msg+'\n\nそれでもインポートしますか？')){
+          e.target.value='';return;
+        }
+      }
+    }
+
+    // 重複チェック：v2はIDで、v1は従来の複合キーで判定
+    var existIds={};
+    records.forEach(function(r){existIds[r.id]=true;});
+    var existKeysSet={};
+    records.forEach(function(r){existKeysSet[r.date+'|'+r.amount+'|'+r.pay+'|'+r.type]=true;});
+
+    var added=0,skipped=0;
+    imported.forEach(function(r){
+      if(isV2){
+        if(existIds[r.id]){skipped++;return;}
+      } else {
+        var k=r.date+'|'+r.amount+'|'+r.pay+'|'+r.type;
+        if(existKeysSet[k]){skipped++;return;}
+      }
+      records.push(r);
+      added++;
+    });
+
     records.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
     save();renderAll();
-    alert(added+'件を復元しました！（重複'+(imported.length-added)+'件はスキップ）');
+    var msg=added+'件を復元しました！';
+    if(skipped)msg+='（重複'+skipped+'件はスキップ）';
+    if(!isV2)msg+='\n\n※ 旧形式のCSVです。次回以降は最新版でエクスポートしてください。';
+    alert(msg);
   };
   reader.readAsText(file,'UTF-8');e.target.value='';
 }
@@ -1061,20 +1116,11 @@ function renderBalance(){
     bankAccounts.forEach(function(b){
       var inc=records.filter(function(r){return r.pay==='bank'&&r.bankId===b.id&&r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
       var exp=records.filter(function(r){return r.pay==='bank'&&r.bankId===b.id&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
-      // bankIdなし（旧形式CSVからの復元）は最初の口座に紐付ける
-      if(bankAccounts.indexOf(b)===0){
-        inc+=records.filter(function(r){return r.pay==='bank'&&!r.bankId&&r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
-        exp+=records.filter(function(r){return r.pay==='bank'&&!r.bankId&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
-      }
       var trIn=transfers.filter(function(t){return t.to==='bank'&&t.bankId===b.id;}).reduce(function(s,t){return s+t.amount;},0);
       var trOut=transfers.filter(function(t){return t.from==='bank'&&t.bankId===b.id;}).reduce(function(s,t){return s+t.amount;},0);
       var bal=inc-exp+trIn-trOut;
       var mInc=records.filter(function(r){return r.pay==='bank'&&r.bankId===b.id&&r.type==='income'&&fmtYM(r.date)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
       var mExp=records.filter(function(r){return r.pay==='bank'&&r.bankId===b.id&&r.type==='expense'&&fmtYM(r.date)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
-      if(bankAccounts.indexOf(b)===0){
-        mInc+=records.filter(function(r){return r.pay==='bank'&&!r.bankId&&r.type==='income'&&fmtYM(r.date)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
-        mExp+=records.filter(function(r){return r.pay==='bank'&&!r.bankId&&r.type==='expense'&&fmtYM(r.date)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
-      }
       html+='<div style="background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:8px">'+
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'+
           '<span style="display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;background:#ffca28;color:#5f4000;font-weight:700">'+b.name+'</span>'+
