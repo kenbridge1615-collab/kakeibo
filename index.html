@@ -120,21 +120,10 @@ input:focus { outline: none; border-color: #555; background: #fff; }
     <button onclick="saveJobSettings()" style="width:100%;padding:11px;background:#3949ab;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;margin-bottom:20px">給料設定を保存</button>
 
     <!-- 初期残高 -->
-    <div style="font-size:13px;font-weight:600;color:#555;margin-bottom:8px">初期残高の設定</div>
-    <div style="font-size:12px;color:#aaa;margin-bottom:12px">設定すると「スタート時点」として収入記録が自動で追加されます。一度だけ設定してください。</div>
-    <div class="form-row">
-      <label>財布</label>
-      <input type="number" id="init-wallet" placeholder="例: 3000" inputmode="numeric" />
-    </div>
-    <div class="form-row">
-      <label>PayPay</label>
-      <input type="number" id="init-paypay" placeholder="例: 5000" inputmode="numeric" />
-    </div>
-    <div class="form-row">
-      <label>Suica</label>
-      <input type="number" id="init-suica" placeholder="例: 1000" inputmode="numeric" />
-    </div>
-    <button onclick="applyInitBalance()" style="width:100%;padding:11px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;margin-bottom:20px">初期残高を設定する</button>
+    <div style="font-size:13px;font-weight:600;color:#555;margin-bottom:4px">初期残高の設定</div>
+    <div style="font-size:12px;color:#aaa;margin-bottom:12px">収支集計には含まれず、残高の出発点として使われます。実際の残高とずれた時は「現在値に合わせる」で修正できます。</div>
+    <div id="init-balance-rows"></div>
+    <button onclick="applyInitBalance()" style="width:100%;padding:11px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;margin-bottom:20px">すべて保存する</button>
 
     <!-- 銀行口座 -->
     <div style="font-size:13px;font-weight:600;color:#555;margin-bottom:8px">銀行口座の管理</div>
@@ -189,6 +178,16 @@ input:focus { outline: none; border-color: #555; background: #fff; }
   <!-- 残高 -->
   <div id="tab-balance" class="section active">
     <div id="balance-area"></div>
+    <div id="debug-area" style="background:#f0f0f0;border-radius:8px;padding:12px;margin-top:8px;font-size:11px;color:#555;display:none;word-break:break-all;white-space:pre-wrap"></div>
+    <button onclick="(function(){var a=document.getElementById('debug-area');a.style.display='block';var wi=records.filter(function(r){return r.pay==='wallet'&&r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);var we=records.filter(function(r){return r.pay==='wallet'&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);var ti=transfers.filter(function(t){return t.to==='wallet';}).reduce(function(s,t){return s+t.amount;},0);var to=transfers.filter(function(t){return t.from==='wallet';}).reduce(function(s,t){return s+t.amount;},0);a.textContent='initBalance.wallet: '+initBalance.wallet+'
+wallet収入: '+wi+'
+wallet支出: '+we+'
+移動IN: '+ti+'
+移動OUT: '+to+'
+計算残高: '+(initBalance.wallet+wi-we+ti-to)+'
+
+localStorage:
+'+localStorage.getItem('kakeibo_init');})()" style="width:100%;padding:8px;background:#eee;border:1px solid #ddd;border-radius:8px;font-size:12px;color:#888;cursor:pointer;font-family:inherit;margin-top:8px">デバッグ情報を表示</button>
   </div>
 
   <!-- 入力 -->
@@ -356,7 +355,7 @@ input:focus { outline: none; border-color: #555; background: #fff; }
     <input type="file" id="csv-import-input" accept=".csv,text/csv,text/plain,*/*" onchange="importCSV(event)" style="display:none" />
   </div>
 
-  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.1</div>
+  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.5</div>
 </div>
 
 <script>
@@ -366,8 +365,31 @@ var bankAccounts = JSON.parse(localStorage.getItem('kakeibo_banks') || '[]');
 var selectedBankId = null;
 var creditCards = JSON.parse(localStorage.getItem('kakeibo_cards') || '[]');
 var selectedCardId = null;
-function saveCards(){ try{ localStorage.setItem('kakeibo_cards', JSON.stringify(creditCards)); }catch(e){} }
 
+// 初期残高（収支集計に含めない別枠）
+// 形式: {wallet:0, paypay:0, suica:0, bank:{<bankId>:0, ...}}
+var initBalance = JSON.parse(localStorage.getItem('kakeibo_init') || '{"wallet":0,"paypay":0,"suica":0,"bank":{}}');
+function saveInitBalance(){ try{ localStorage.setItem('kakeibo_init', JSON.stringify(initBalance)); }catch(e){} }
+function bankInit(bid){ return (initBalance.bank&&(initBalance.bank[bid]||initBalance.bank[String(bid)]))||0; }
+
+// 旧形式（「スタート時点」収入レコード）を initBalance へ自動移行
+(function migrateInitRecords(){
+  var toMigrate=records.filter(function(r){return r.note&&r.note.indexOf('スタート時点')===0;});
+  if(!toMigrate.length)return;
+  toMigrate.forEach(function(r){
+    if(r.pay==='wallet'||r.pay==='paypay'||r.pay==='suica'){
+      initBalance[r.pay]=(initBalance[r.pay]||0)+r.amount;
+    } else if(r.pay==='bank'&&r.bankId){
+      if(!initBalance.bank)initBalance.bank={};
+      initBalance.bank[r.bankId]=(initBalance.bank[r.bankId]||0)+r.amount;
+    }
+  });
+  records=records.filter(function(r){return !r.note||r.note.indexOf('スタート時点')!==0;});
+  saveInitBalance();
+  save();
+})();
+
+function saveCards(){ try{ localStorage.setItem('kakeibo_cards', JSON.stringify(creditCards)); }catch(e){} }
 function saveBanks(){ try{ localStorage.setItem('kakeibo_banks', JSON.stringify(bankAccounts)); }catch(e){} }
 
 // 設定モーダル
@@ -393,7 +415,8 @@ function clearAllData(){
   var val=document.getElementById('clear-confirm-input').value.trim();
   if(val!=='削除'){alert('「削除」と正確に入力してください');return;}
   records=[];transfers=[];
-  save();saveTransfers();
+  initBalance={wallet:0,paypay:0,suica:0,bank:{}};
+  save();saveTransfers();saveInitBalance();
   localStorage.removeItem('kakeibo_seed_done');
   var area=document.getElementById('clear-confirm-area');
   if(area)area.remove();
@@ -401,23 +424,82 @@ function clearAllData(){
   renderAll();
   alert('データをクリアしました！');
 }
+function calcCurrentBal(p, bankId){
+  // 現在の実計算残高（初期残高を除いた分）
+  if(p==='wallet'||p==='paypay'||p==='suica'){
+    var inc=records.filter(function(r){return r.pay===p&&r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
+    var exp=records.filter(function(r){return r.pay===p&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
+    var trIn=transfers.filter(function(t){return t.to===p;}).reduce(function(s,t){return s+t.amount;},0);
+    var trOut=transfers.filter(function(t){return t.from===p;}).reduce(function(s,t){return s+t.amount;},0);
+    return (initBalance[p]||0)+inc-exp+trIn-trOut;
+  } else if(p==='bank'&&bankId){
+    var init=(initBalance.bank&&initBalance.bank[bankId])||0;
+    var inc=records.filter(function(r){return r.pay==='bank'&&r.bankId===bankId&&r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
+    var exp=records.filter(function(r){return r.pay==='bank'&&r.bankId===bankId&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
+    var trIn=transfers.filter(function(t){return t.to==='bank'&&t.bankId===bankId;}).reduce(function(s,t){return s+t.amount;},0);
+    var trOut=transfers.filter(function(t){return t.from==='bank'&&t.bankId===bankId;}).reduce(function(s,t){return s+t.amount;},0);
+    return init+inc-exp+trIn-trOut;
+  }
+  return 0;
+}
+function syncInitToCurrentBal(p, bankId){
+  // 現在の残高計算値をそのまま初期残高として設定し直す
+  // 「記録による増減分」を0にして、初期残高だけで今の残高を表現する
+  if(p==='wallet'||p==='paypay'||p==='suica'){
+    var inc=records.filter(function(r){return r.pay===p&&r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
+    var exp=records.filter(function(r){return r.pay===p&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
+    var trIn=transfers.filter(function(t){return t.to===p;}).reduce(function(s,t){return s+t.amount;},0);
+    var trOut=transfers.filter(function(t){return t.from===p;}).reduce(function(s,t){return s+t.amount;},0);
+    var cur=calcCurrentBal(p);
+    var inputEl=document.getElementById('init-row-input-'+p);
+    if(inputEl) inputEl.value=cur;
+  } else if(p==='bank'&&bankId){
+    var cur=calcCurrentBal('bank',bankId);
+    var inputEl=document.getElementById('init-row-input-bank-'+bankId);
+    if(inputEl) inputEl.value=cur;
+  }
+}
+function renderInitBalanceRows(){
+  var items=[
+    {p:'wallet',label:'財布'},
+    {p:'paypay',label:'PayPay'},
+    {p:'suica',label:'Suica'}
+  ];
+  bankAccounts.forEach(function(b){ items.push({p:'bank',label:b.name,bankId:b.id}); });
+  var html=items.map(function(item){
+    var cur=item.p==='bank'
+      ?(bankInit(item.bankId))
+      :(initBalance[item.p]||0);
+    var inputId=item.p==='bank'?'init-row-input-bank-'+item.bankId:'init-row-input-'+item.p;
+    var syncCall=item.p==='bank'?'syncInitToCurrentBal(\'bank\','+item.bankId+')'  :'syncInitToCurrentBal(\''+item.p+'\')' ;
+    return'<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
+      '<label style="font-size:13px;color:#666;font-weight:500;min-width:64px;flex-shrink:0">'+item.label+'</label>'+
+      '<input type="number" id="'+inputId+'" inputmode="numeric" value="'+(cur||'')+'" placeholder="0" style="flex:1;font-size:15px;padding:10px;border:1px solid #ddd;border-radius:8px;background:#fafafa" />'+
+      '<button onclick="'+syncCall+'" style="font-size:12px;padding:8px 10px;border:1px solid #ddd;border-radius:8px;background:#f5f5f5;color:#555;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0">現在値に<br>合わせる</button>'+
+    '</div>';
+  }).join('');
+  var el=document.getElementById('init-balance-rows');
+  if(el) el.innerHTML=html;
+}
 function applyInitBalance(){
-  var vals={wallet:parseInt(document.getElementById('init-wallet').value)||0, paypay:parseInt(document.getElementById('init-paypay').value)||0, suica:parseInt(document.getElementById('init-suica').value)||0};
-  var hasVal=vals.wallet||vals.paypay||vals.suica;
-  if(!hasVal){alert('金額を入力してください');return;}
-  var date=new Date(2000,0,1).toISOString();
-  ['wallet','paypay','suica'].forEach(function(p){
-    if(!vals[p])return;
-    records.push({id:Date.now()+Math.random(),type:'income',amount:vals[p],pay:p,note:'スタート時点',date:date});
+  if(!initBalance.bank)initBalance.bank={};
+  // モーダルを閉じる前に値を読む（閉じるとDOMが消えるため）
+  var simpleKeys=['wallet','paypay','suica'];
+  simpleKeys.forEach(function(p){
+    var el=document.getElementById('init-row-input-'+p);
+    if(el) initBalance[p]=parseInt(el.value)||0;
   });
-  records.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
-  save();
-  document.getElementById('init-wallet').value='';
-  document.getElementById('init-paypay').value='';
-  document.getElementById('init-suica').value='';
-  closeSettings();
+  bankAccounts.forEach(function(b){
+    var el=document.getElementById('init-row-input-bank-'+b.id);
+    if(el) initBalance.bank[String(b.id)]=parseInt(el.value)||0;
+  });
+  saveInitBalance();
+  // 保存された値をコンソールで確認
+  console.log('[initBalance saved]', JSON.stringify(initBalance));
+  // closeSettingsのrenderAllと重複しないよう直接閉じる
+  document.getElementById('settings-overlay').classList.remove('open');
   renderAll();
-  alert('初期残高を設定しました！');
+  alert('初期残高を保存しました！\n財布:'+initBalance.wallet+' PayPay:'+initBalance.paypay+' Suica:'+initBalance.suica);
 }
 // シフトデータ
 var shifts = JSON.parse(localStorage.getItem('kakeibo_shifts') || '[]');
@@ -641,6 +723,8 @@ function openSettings(){
     sel.innerHTML='<option value="">引落とし口座を選択</option>'+
       bankAccounts.map(function(b){return'<option value="'+b.id+'">'+b.name+'</option>';}).join('');
   }
+  // 初期残高フィールドを動的生成（財布・PayPay・Suica・銀行口座）
+  renderInitBalanceRows();
   document.getElementById('set-hourly').value=jobSettings.hourly||'';
   document.getElementById('set-transport').value=jobSettings.transport||'';
   document.getElementById('settings-overlay').classList.add('open');
@@ -715,11 +799,11 @@ function addBankAccount(){
   var bank={id:Date.now(),name:name,hidden:false};
   bankAccounts.push(bank);
   saveBanks();
-  // 初期残高があればスタート時点として記録
+  // 初期残高は収入レコードではなく別枠で保持
   if(amount>0){
-    records.push({id:Date.now()+1,type:'income',amount:amount,pay:'bank',bankId:bank.id,note:'スタート時点（'+name+'）',date:new Date(2000,0,1).toISOString()});
-    records.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
-    save();
+    if(!initBalance.bank)initBalance.bank={};
+    initBalance.bank[bank.id]=(initBalance.bank[bank.id]||0)+amount;
+    saveInitBalance();
   }
   document.getElementById('new-bank-name').value='';
   document.getElementById('new-bank-amount').value='';
@@ -730,10 +814,11 @@ function removeBankAccount(i){
   var b=bankAccounts[i];
   bankAccounts.splice(i,1);
   saveBanks();
-  // 紐づいた記録も削除
+  // 紐づいた記録・移動・初期残高も削除
   records=records.filter(function(r){return !(r.pay==='bank'&&r.bankId===b.id);});
   transfers=transfers.filter(function(t){return !((t.from==='bank'||t.to==='bank')&&t.bankId===b.id);});
-  save();saveTransfers();
+  if(initBalance.bank&&initBalance.bank[b.id])delete initBalance.bank[b.id];
+  save();saveTransfers();saveInitBalance();
   renderSettingsBankList();
   renderAll();
 }
@@ -929,6 +1014,7 @@ function saveAmount(id){
 }
 function exportCSV(){
   // v2フォーマット: id列を追加して復元時の重複チェックを正確にする
+  // シート1: 収支記録
   var rows=['\uFEFFid,日時,種別,金額,支払い形態,口座・カード名,内容'];
   records.slice().sort(function(a,b){return new Date(a.date)-new Date(b.date);}).forEach(function(r){
     var d=new Date(r.date);
@@ -944,6 +1030,21 @@ function exportCSV(){
     var payLblMap={wallet:'財布',paypay:'PayPay',suica:'Suica',bank:'銀行',card:'カード'};
     rows.push(r.id+','+dt+','+(r.type==='income'?'収入':'支出')+','+r.amount+','+(payLblMap[r.pay]||r.pay)+','+payName+','+(r.note||'').replace(/,/g,'、'));
   });
+  // 移動記録セクションを区切り行で追加
+  rows.push('');
+  rows.push('##移動記録##');
+  rows.push('id,日時,移動元,移動元口座名,移動先,金額,内容');
+  var payLblMap2={wallet:'財布',paypay:'PayPay',suica:'Suica',bank:'銀行'};
+  transfers.slice().sort(function(a,b){return new Date(a.date)-new Date(b.date);}).forEach(function(t){
+    var d=new Date(t.date);
+    var dt=d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate()+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+    var bankName='';
+    if(t.from==='bank'){
+      var b=bankAccounts.find(function(b){return b.id===t.bankId;});
+      bankName=b?b.name:'';
+    }
+    rows.push(t.id+','+dt+','+(payLblMap2[t.from]||t.from)+','+bankName+','+(payLblMap2[t.to]||t.to)+','+t.amount+','+(t.note||'').replace(/,/g,'、'));
+  });
   var blob=new Blob([rows.join('\n')],{type:'text/csv;charset=utf-8;'});
   var url=URL.createObjectURL(blob);var a=document.createElement('a');
   a.href=url;a.download='kakeibo_'+new Date().toISOString().slice(0,10)+'.csv';a.click();URL.revokeObjectURL(url);
@@ -952,14 +1053,18 @@ function importCSV(e){
   var file=e.target.files[0];if(!file)return;
   var reader=new FileReader();
   reader.onload=function(ev){
-    var lines=ev.target.result.replace(/^\uFEFF/,'').split('\n').filter(function(l){return l.trim();});
+    var raw=ev.target.result.replace(/^\uFEFF/,'');
+    // 収支セクションと移動セクションに分割
+    var transferSectionIdx=raw.indexOf('\n##移動記録##\n');
+    var recordsRaw=transferSectionIdx>=0?raw.slice(0,transferSectionIdx):raw;
+    var transfersRaw=transferSectionIdx>=0?raw.slice(transferSectionIdx+'\n##移動記録##\n'.length):'';
+
+    var lines=recordsRaw.split('\n').filter(function(l){return l.trim();});
     if(lines.length<2){alert('データが見つかりませんでした');return;}
 
     // ヘッダー解析：v2(id列あり) / v1(id列なし) を自動判別
     var header=lines[0].split(',').map(function(h){return h.trim();});
     var isV2=(header[0]==='id');
-    // v2: [id, 日時, 種別, 金額, 支払い形態, 口座・カード名, 内容]
-    // v1: [日時, 種別, 金額, 支払い形態, 口座・カード名, 内容]
     var colOffset=isV2?1:0;
 
     var payMap={'財布':'wallet','PayPay':'paypay','Suica':'suica','銀行':'bank','カード':'card'};
@@ -988,7 +1093,6 @@ function importCSV(e){
       }catch(err){continue;}
       if(isNaN(d.getTime()))continue;
 
-      // IDの決定：v2はCSVのidをそのまま使う（復元後も同一IDになるため残高がずれない）
       var recId=isV2&&csvId?parseFloat(csvId):(d.getTime()+i);
       var rec={id:recId,type:type,amount:amount,pay:pay,date:d.toISOString()};
 
@@ -1000,7 +1104,6 @@ function importCSV(e){
           if(bankNamesInCSV.indexOf(subName)===-1)bankNamesInCSV.push(subName);
           var b=bankAccounts.find(function(b){return b.name===subName;});
           if(b) rec.bankId=b.id;
-          // 口座が見つからなくても記録は取り込む（後で警告）
         } else if(pay==='card'&&subName){
           var c=creditCards.find(function(c){return c.name===subName;});
           if(c) rec.cardId=c.id;
@@ -1011,9 +1114,43 @@ function importCSV(e){
       imported.push(rec);
     }
 
-    if(!imported.length){alert('有効なデータが見つかりませんでした');return;}
+    // 移動記録のパース
+    var importedTransfers=[];
+    if(transfersRaw){
+      var tlines=transfersRaw.split('\n').filter(function(l){return l.trim();});
+      // ヘッダー行をスキップ（id,日時,移動元,移動元口座名,移動先,金額,内容）
+      for(var j=1;j<tlines.length;j++){
+        var tc=tlines[j].split(',');
+        if(tc.length<6)continue;
+        var tid=parseFloat(tc[0].trim());
+        var tdateStr=tc[1].trim();
+        var tfrom=payMap[tc[2].trim()]||tc[2].trim();
+        var tbankName=tc[3].trim();
+        var tto=payMap[tc[4].trim()]||tc[4].trim();
+        var tamt=parseInt(tc[5].trim());
+        var tnote=(tc[6]||'').trim();
+        if(!tfrom||!tto||!tamt)continue;
+        var td2;
+        try{
+          var tsp=tdateStr.split(' ');
+          var tdp=tsp[0].split('/');
+          var ttp=tsp[1]?tsp[1].split(':'):[0,0];
+          td2=new Date(parseInt(tdp[0]),parseInt(tdp[1])-1,parseInt(tdp[2]),parseInt(ttp[0])||0,parseInt(ttp[1])||0);
+        }catch(err){continue;}
+        if(isNaN(td2.getTime()))continue;
+        var tr={id:tid||td2.getTime()+j,from:tfrom,to:tto,amount:tamt,note:tnote,date:td2.toISOString()};
+        if(tfrom==='bank'&&tbankName){
+          if(bankNamesInCSV.indexOf(tbankName)===-1)bankNamesInCSV.push(tbankName);
+          var tb=bankAccounts.find(function(b){return b.name===tbankName;});
+          if(tb) tr.bankId=tb.id;
+        }
+        importedTransfers.push(tr);
+      }
+    }
 
-    // 銀行口座の事前チェック：CSVに銀行記録があるのに口座が未設定の場合は警告
+    if(!imported.length&&!importedTransfers.length){alert('有効なデータが見つかりませんでした');return;}
+
+    // 銀行口座の事前チェック
     if(bankNamesInCSV.length){
       var missingBanks=bankNamesInCSV.filter(function(name){
         return !bankAccounts.find(function(b){return b.name===name;});
@@ -1028,7 +1165,7 @@ function importCSV(e){
       }
     }
 
-    // 重複チェック：v2はIDで、v1は従来の複合キーで判定
+    // 収支記録の重複チェック・追加
     var existIds={};
     records.forEach(function(r){existIds[r.id]=true;});
     var existKeysSet={};
@@ -1045,11 +1182,25 @@ function importCSV(e){
       records.push(r);
       added++;
     });
-
     records.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
-    save();renderAll();
-    var msg=added+'件を復元しました！';
+    save();
+
+    // 移動記録の重複チェック・追加
+    var existTrIds={};
+    transfers.forEach(function(t){existTrIds[t.id]=true;});
+    var addedTr=0;
+    importedTransfers.forEach(function(t){
+      if(existTrIds[t.id])return;
+      transfers.push(t);
+      addedTr++;
+    });
+    transfers.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+    saveTransfers();
+
+    renderAll();
+    var msg=added+'件の収支記録を復元しました！';
     if(skipped)msg+='（重複'+skipped+'件はスキップ）';
+    if(addedTr)msg+='\n移動記録 '+addedTr+'件も復元しました！';
     if(!isV2)msg+='\n\n※ 旧形式のCSVです。次回以降は最新版でエクスポートしてください。';
     alert(msg);
   };
@@ -1094,12 +1245,14 @@ function renderBalance(){
   var tagCol={wallet:'#fff',paypay:'#fff',suica:'#005c38'};
 
   function calcBal(p){
+    var init=initBalance[p]||0;
     var inc=records.filter(function(r){return r.pay===p&&r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
     var exp=records.filter(function(r){return r.pay===p&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
     var trIn=transfers.filter(function(t){return t.to===p;}).reduce(function(s,t){return s+t.amount;},0);
     var trOut=transfers.filter(function(t){return t.from===p;}).reduce(function(s,t){return s+t.amount;},0);
-    return inc-exp+trIn-trOut;
+    return init+inc-exp+trIn-trOut;
   }
+
   function calcMonthly(p){
     var inc=records.filter(function(r){return r.pay===p&&r.type==='income'&&fmtYM(r.date)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
     var exp=records.filter(function(r){return r.pay===p&&r.type==='expense'&&fmtYM(r.date)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
@@ -1114,11 +1267,12 @@ function renderBalance(){
   // 銀行（上段・口座ごと）
   if(bankAccounts.length){
     bankAccounts.forEach(function(b){
+      var init=bankInit(b.id);
       var inc=records.filter(function(r){return r.pay==='bank'&&r.bankId===b.id&&r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
       var exp=records.filter(function(r){return r.pay==='bank'&&r.bankId===b.id&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
       var trIn=transfers.filter(function(t){return t.to==='bank'&&t.bankId===b.id;}).reduce(function(s,t){return s+t.amount;},0);
       var trOut=transfers.filter(function(t){return t.from==='bank'&&t.bankId===b.id;}).reduce(function(s,t){return s+t.amount;},0);
-      var bal=inc-exp+trIn-trOut;
+      var bal=init+inc-exp+trIn-trOut;
       var mInc=records.filter(function(r){return r.pay==='bank'&&r.bankId===b.id&&r.type==='income'&&fmtYM(r.date)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
       var mExp=records.filter(function(r){return r.pay==='bank'&&r.bankId===b.id&&r.type==='expense'&&fmtYM(r.date)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
       html+='<div style="background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:8px">'+
