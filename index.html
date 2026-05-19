@@ -938,8 +938,6 @@ function saveAmount(id){
   }
   editingId=null;save();renderHistory();renderRecent();renderBalance();
 }
-function importCSV(e){
-  var file=e.target.files[0];if(!file)return;
 function exportCSV(){
   var rows=['\uFEFF日時,種別,金額,支払い形態,口座・カード名,内容'];
   records.slice().sort(function(a,b){return new Date(a.date)-new Date(b.date);}).forEach(function(r){
