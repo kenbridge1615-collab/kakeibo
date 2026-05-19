@@ -353,7 +353,7 @@ input:focus { outline: none; border-color: #555; background: #fff; }
     <div id="card-area" style="margin-bottom:12px"></div>
     <button onclick="exportCSV()" style="width:100%;padding:13px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:8px">CSVでエクスポート（バックアップ）</button>
     <button onclick="document.getElementById('csv-import-input').click()" style="width:100%;padding:13px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;margin-top:0">CSVから復元（インポート）</button>
-    <input type="file" id="csv-import-input" accept=".csv" onchange="importCSV(event)" style="display:none" />
+    <input type="file" id="csv-import-input" accept=".csv,text/csv,text/plain,*/*" onchange="importCSV(event)" style="display:none" />
   </div>
 
   <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.0</div>
