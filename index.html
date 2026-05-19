@@ -345,7 +345,7 @@ input:focus { outline: none; border-color: #555; background: #fff; }
     <input type="file" id="csv-import-input" accept=".csv,text/csv,text/plain,*/*" onchange="importCSV(event)" style="display:none" />
   </div>
 
-  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.6</div>
+  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.7</div>
 </div>
 
 <script>
@@ -358,25 +358,28 @@ var selectedCardId = null;
 
 // 初期残高（収支集計に含めない別枠）
 // 形式: {wallet:0, paypay:0, suica:0, bank:{<bankId>:0, ...}}
-var initBalance = JSON.parse(localStorage.getItem('kakeibo_init') || '{"wallet":0,"paypay":0,"suica":0,"bank":{},"resetAt":{}}');
-if(!initBalance.resetAt) initBalance.resetAt={};
+// initBalance: 各形態の「残高の出発点」
+// offset: リセット時点での収支累計（これを引くことでリセット後の増減だけを計算）
+var initBalance = JSON.parse(localStorage.getItem('kakeibo_init') || '{"wallet":0,"paypay":0,"suica":0,"bank":{},"offset":{},"bankOffset":{}}');
 if(!initBalance.bank) initBalance.bank={};
+if(!initBalance.offset) initBalance.offset={};
+if(!initBalance.bankOffset) initBalance.bankOffset={};
 function saveInitBalance(){ try{ localStorage.setItem('kakeibo_init', JSON.stringify(initBalance)); }catch(e){} }
 function bankInit(bid){ return (initBalance.bank&&(initBalance.bank[bid]||initBalance.bank[String(bid)]))||0; }
-// 指定の支払い形態について、リセット日時以降の収支だけを返す
-function recordsAfterReset(p, bankId){
-  var since = bankId ? (initBalance.resetAt['bank_'+String(bankId)]||0) : (initBalance.resetAt[p]||0);
-  return records.filter(function(r){
-    var match = bankId ? (r.pay==='bank'&&r.bankId===bankId) : (r.pay===p);
-    return match && new Date(r.date).getTime() > since;
-  });
+// 全収支の累計（offset計算用）
+function calcRawBal(p){
+  var inc=records.filter(function(r){return r.pay===p&&r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
+  var exp=records.filter(function(r){return r.pay===p&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
+  var trIn=transfers.filter(function(t){return t.to===p;}).reduce(function(s,t){return s+t.amount;},0);
+  var trOut=transfers.filter(function(t){return t.from===p;}).reduce(function(s,t){return s+t.amount;},0);
+  return inc-exp+trIn-trOut;
 }
-function transfersAfterReset(p, bankId){
-  var since = bankId ? (initBalance.resetAt['bank_'+String(bankId)]||0) : (initBalance.resetAt[p]||0);
-  return transfers.filter(function(t){
-    var match = bankId ? ((t.to==='bank'&&t.bankId===bankId)||(t.from==='bank'&&t.bankId===bankId)) : (t.to===p||t.from===p);
-    return match && new Date(t.date).getTime() > since;
-  });
+function calcRawBankBal(bid){
+  var inc=records.filter(function(r){return r.pay==='bank'&&r.bankId===bid&&r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
+  var exp=records.filter(function(r){return r.pay==='bank'&&r.bankId===bid&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
+  var trIn=transfers.filter(function(t){return t.to==='bank'&&t.bankId===bid;}).reduce(function(s,t){return s+t.amount;},0);
+  var trOut=transfers.filter(function(t){return t.from==='bank'&&t.bankId===bid;}).reduce(function(s,t){return s+t.amount;},0);
+  return inc-exp+trIn-trOut;
 }
 
 // 旧形式（「スタート時点」収入レコード）を initBalance へ自動移行
@@ -422,7 +425,7 @@ function clearAllData(){
   var val=document.getElementById('clear-confirm-input').value.trim();
   if(val!=='削除'){alert('「削除」と正確に入力してください');return;}
   records=[];transfers=[];
-  initBalance={wallet:0,paypay:0,suica:0,bank:{},resetAt:{}};
+  initBalance={wallet:0,paypay:0,suica:0,bank:{},offset:{},bankOffset:{}};
   save();saveTransfers();saveInitBalance();
   localStorage.removeItem('kakeibo_seed_done');
   var area=document.getElementById('clear-confirm-area');
@@ -450,13 +453,17 @@ function calcCurrentBal(p, bankId){
   return 0;
 }
 function syncInitToCurrentBal(p, bankId){
-  // 現在の表示残高をそのまま入力欄にセット（保存はすべて保存ボタンで）
+  // 現在の表示残高（初期残高＋リセット後増減）を入力欄にセット
   if(p==='wallet'||p==='paypay'||p==='suica'){
-    var cur=calcCurrentBal(p);
+    var init=initBalance[p]||0;
+    var offset=initBalance.offset[p]||0;
+    var cur=init+calcRawBal(p)-offset;
     var inputEl=document.getElementById('init-row-input-'+p);
     if(inputEl) inputEl.value=cur;
   } else if(p==='bank'&&bankId){
-    var cur=calcCurrentBal('bank',bankId);
+    var init=bankInit(bankId);
+    var bOffset=initBalance.bankOffset[String(bankId)]||0;
+    var cur=init+calcRawBankBal(bankId)-bOffset;
     var inputEl=document.getElementById('init-row-input-bank-'+bankId);
     if(inputEl) inputEl.value=cur;
   }
@@ -485,29 +492,26 @@ function renderInitBalanceRows(){
 }
 function applyInitBalance(){
   if(!initBalance.bank)initBalance.bank={};
-  if(!initBalance.resetAt)initBalance.resetAt={};
-  var now=Date.now();
-  // モーダルを閉じる前に値を読む（閉じるとDOMが消えるため）
+  if(!initBalance.offset)initBalance.offset={};
+  if(!initBalance.bankOffset)initBalance.bankOffset={};
+  // モーダルを閉じる前に値を読む
   var simpleKeys=['wallet','paypay','suica'];
   simpleKeys.forEach(function(p){
     var el=document.getElementById('init-row-input-'+p);
     if(!el)return;
     var val=parseInt(el.value)||0;
-    // 値が変わった場合のみリセット日時を更新
-    if(val!==initBalance[p]){
-      initBalance[p]=val;
-      initBalance.resetAt[p]=now;
-    }
+    // 初期残高を変更したら、今の収支累計をオフセットとして保存
+    // → 残高 = val + (これ以降の増減) になる
+    initBalance[p]=val;
+    initBalance.offset[p]=calcRawBal(p);
   });
   bankAccounts.forEach(function(b){
     var el=document.getElementById('init-row-input-bank-'+b.id);
     if(!el)return;
-    var val=parseInt(el.value)||0;
     var key=String(b.id);
-    if(val!==(initBalance.bank[key]||0)){
-      initBalance.bank[key]=val;
-      initBalance.resetAt['bank_'+key]=now;
-    }
+    var val=parseInt(el.value)||0;
+    initBalance.bank[key]=val;
+    initBalance.bankOffset[key]=calcRawBankBal(b.id);
   });
   saveInitBalance();
   document.getElementById('settings-overlay').classList.remove('open');
@@ -1259,13 +1263,9 @@ function renderBalance(){
 
   function calcBal(p){
     var init=initBalance[p]||0;
-    var recs=recordsAfterReset(p);
-    var trs=transfersAfterReset(p);
-    var inc=recs.filter(function(r){return r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
-    var exp=recs.filter(function(r){return r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
-    var trIn=trs.filter(function(t){return t.to===p;}).reduce(function(s,t){return s+t.amount;},0);
-    var trOut=trs.filter(function(t){return t.from===p;}).reduce(function(s,t){return s+t.amount;},0);
-    return init+inc-exp+trIn-trOut;
+    var offset=initBalance.offset[p]||0;
+    // 残高 = 初期残高 + (全収支累計 - リセット時点の累計)
+    return init + calcRawBal(p) - offset;
   }
 
   function calcMonthly(p){
@@ -1283,13 +1283,8 @@ function renderBalance(){
   if(bankAccounts.length){
     bankAccounts.forEach(function(b){
       var init=bankInit(b.id);
-      var brecs=recordsAfterReset('bank',b.id);
-      var btrs=transfersAfterReset('bank',b.id);
-      var inc=brecs.filter(function(r){return r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
-      var exp=brecs.filter(function(r){return r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
-      var trIn=btrs.filter(function(t){return t.to==='bank'&&t.bankId===b.id;}).reduce(function(s,t){return s+t.amount;},0);
-      var trOut=btrs.filter(function(t){return t.from==='bank'&&t.bankId===b.id;}).reduce(function(s,t){return s+t.amount;},0);
-      var bal=init+inc-exp+trIn-trOut;
+      var bankOffset=initBalance.bankOffset[String(b.id)]||0;
+      var bal=init + calcRawBankBal(b.id) - bankOffset;
       var mInc=records.filter(function(r){return r.pay==='bank'&&r.bankId===b.id&&r.type==='income'&&fmtYM(r.date)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
       var mExp=records.filter(function(r){return r.pay==='bank'&&r.bankId===b.id&&r.type==='expense'&&fmtYM(r.date)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
       html+='<div style="background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:8px">'+
