@@ -352,10 +352,8 @@ input:focus { outline: none; border-color: #555; background: #fff; }
     </div>
     <div id="card-area" style="margin-bottom:12px"></div>
     <button onclick="exportCSV()" style="width:100%;padding:13px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:8px">CSVでエクスポート（バックアップ）</button>
-    <label style="width:100%;display:block">
-      <div style="width:100%;padding:13px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;text-align:center;box-sizing:border-box">CSVから復元（インポート）</div>
-      <input type="file" accept=".csv" onchange="importCSV(event)" style="display:none" />
-    </label>
+    <button onclick="document.getElementById('csv-import-input').click()" style="width:100%;padding:13px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;margin-top:0">CSVから復元（インポート）</button>
+    <input type="file" id="csv-import-input" accept=".csv" onchange="importCSV(event)" style="display:none" />
   </div>
 
   <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.0</div>
@@ -910,60 +908,35 @@ function deleteTransfer(id){
   transfers=transfers.filter(function(t){return t.id!==id;});
   saveTransfers();renderAll();
 }
+function cancelEdit(){editingId=null;renderHistory();renderRecent();}
 function toggleEdit(id){
-  var sid=String(id);
-  editingId=(editingId===sid&&editMode==='date')?null:sid;
+  editingId=(editingId===id&&editMode==='date')?null:id;
   editMode='date';renderHistory();renderRecent();
 }
 function toggleEditAmount(id){
-  var sid=String(id);
-  editingId=(editingId===sid&&editMode==='amount')?null:sid;
+  editingId=(editingId===id&&editMode==='amount')?null:id;
   editMode='amount';renderHistory();renderRecent();
-}
-function toggleEditPay(id){
-  var sid=String(id);
-  editingId=(editingId===sid&&editMode==='pay')?null:sid;
-  editMode='pay';renderHistory();renderRecent();
 }
 var editMode='date';
 function saveDate(id){
   var input=document.getElementById('di-'+id);if(!input||!input.value)return;
   var parts=input.value.split('-');
   for(var i=0;i<records.length;i++){
-    if(String(records[i].id)===String(id)){
-      var orig=new Date(records[i].date);
-      orig.setFullYear(parseInt(parts[0]));orig.setMonth(parseInt(parts[1])-1);orig.setDate(parseInt(parts[2]));
-      records[i].date=orig.toISOString();break;
+    if(records[i].id===id){
+      var d=new Date(records[i].date);
+      d.setFullYear(parseInt(parts[0]));d.setMonth(parseInt(parts[1])-1);d.setDate(parseInt(parts[2]));
+      records[i].date=d.toISOString();break;
     }
   }
-  editingId=null;
-  try{ localStorage.setItem('kakeibo_v1', JSON.stringify(records)); }catch(e){}
-  renderRecent();renderHistory();renderBalance();
+  editingId=null;save();renderHistory();renderRecent();renderBalance();
 }
 function saveAmount(id){
   var input=document.getElementById('ai-'+id);if(!input)return;
   var amt=parseInt(input.value);if(!amt||amt<=0){alert('正しい金額を入力してください');return;}
   for(var i=0;i<records.length;i++){
-    if(String(records[i].id)===String(id)){
-      records[i].amount=amt;break;
-    }
+    if(records[i].id===id){records[i].amount=amt;break;}
   }
-  editingId=null;
-  try{ localStorage.setItem('kakeibo_v1', JSON.stringify(records)); }catch(e){}
-  renderRecent();renderHistory();renderBalance();
-}
-function savePay(id){
-  var sel=document.getElementById('pi-'+id);if(!sel)return;
-  var newPay=sel.value;
-  for(var i=0;i<records.length;i++){
-    if(String(records[i].id)===String(id)){
-      records[i].pay=newPay;
-      break;
-    }
-  }
-  editingId=null;
-  try{ localStorage.setItem('kakeibo_v1', JSON.stringify(records)); }catch(e){}
-  renderRecent();renderHistory();renderBalance();
+  editingId=null;save();renderHistory();renderRecent();renderBalance();
 }
 function importCSV(e){
   var file=e.target.files[0];if(!file)return;
@@ -1143,21 +1116,32 @@ function renderBalance(){
   document.getElementById('balance-area').innerHTML=html;
 }
 function recordHTML(r,showBtns){
-  var ts=fmt(r.date),isEdit=editingId===String(r.id),col=r.type==='income'?'#2e7d32':'#c62828',sign=r.type==='income'?'+':'-';
+  var ts=fmt(r.date),isEdit=editingId===r.id,col=r.type==='income'?'#2e7d32':'#c62828',sign=r.type==='income'?'+':'-';
   var bg=r.type==='income'?'background:#f0fff4;margin:0 -16px;padding:0 16px;border-radius:8px;':'';
   var html='<div class="record" style="'+bg+'"><div class="record-top">'+
     '<div class="record-date">'+ts.date+'<br><span style="font-size:11px;color:#bbb">'+ts.time+'</span></div>'+
     '<div class="record-mid"><div class="record-name">'+r.note+'</div>'+payTag(r.pay,r.cardId)+'</div>'+
     '<div class="record-amount" style="color:'+col+'">'+sign+yen(r.amount)+'</div></div>';
   if(showBtns){
-    var sid=String(r.id);
     html+='<div class="record-btns">'+
-      '<button class="sm-btn edit-btn" data-id="'+sid+'" data-mode="date">日付修正</button>'+
-      '<button class="sm-btn edit-btn" data-id="'+sid+'" data-mode="amount">金額修正</button>'+
-      '<button class="sm-btn del delete-btn" data-id="'+sid+'">削除</button>'+
+      '<button class="sm-btn" onclick="toggleEdit('+r.id+')">日付修正</button>'+
+      '<button class="sm-btn" onclick="toggleEditAmount('+r.id+')">金額修正</button>'+
+      '<button class="sm-btn del" onclick="askDelete('+r.id+')">削除</button>'+
     '</div>';
-    if(isEdit&&editMode==='date')html+='<div class="edit-row"><span style="font-size:13px;color:#666">日付：</span><input type="date" id="di-'+sid+'" value="'+toDateVal(r.date)+'" /><button class="save-btn save-edit-btn" data-id="'+sid+'" data-mode="date">保存</button><button class="cncl-btn cancel-edit-btn" data-id="'+sid+'">取消</button></div>';
-    if(isEdit&&editMode==='amount')html+='<div class="edit-row"><span style="font-size:13px;color:#666">金額：</span><input type="number" id="ai-'+sid+'" value="'+r.amount+'" inputmode="numeric" style="width:120px" /><button class="save-btn save-edit-btn" data-id="'+sid+'" data-mode="amount">保存</button><button class="cncl-btn cancel-edit-btn" data-id="'+sid+'">取消</button></div>';
+    if(isEdit&&editMode==='date')html+=
+      '<div class="edit-row">'+
+      '<span style="font-size:13px;color:#666">日付：</span>'+
+      '<input type="date" id="di-'+r.id+'" value="'+toDateVal(r.date)+'" />'+
+      '<button class="save-btn" onclick="saveDate('+r.id+')">保存</button>'+
+      '<button class="cncl-btn" onclick="cancelEdit()">取消</button>'+
+      '</div>';
+    if(isEdit&&editMode==='amount')html+=
+      '<div class="edit-row">'+
+      '<span style="font-size:13px;color:#666">金額：</span>'+
+      '<input type="number" id="ai-'+r.id+'" value="'+r.amount+'" inputmode="numeric" style="width:120px" />'+
+      '<button class="save-btn" onclick="saveAmount('+r.id+')">保存</button>'+
+      '<button class="cncl-btn" onclick="cancelEdit()">取消</button>'+
+      '</div>';
   }
   return html+'</div>';
 }
@@ -1381,48 +1365,6 @@ function renderGraph(){
   });
 }
 
-document.addEventListener('click', function(e){
-  var btn=e.target;
-  var id=btn.getAttribute('data-id');
-  var mode=btn.getAttribute('data-mode');
-  if(!id) return;
-
-  if(btn.classList.contains('edit-btn')){
-    var sid=String(id);
-    if(editingId===sid && editMode===mode){ editingId=null; }
-    else{ editingId=sid; editMode=mode; }
-    renderHistory(); renderRecent();
-    return;
-  }
-  if(btn.classList.contains('cancel-edit-btn')){
-    editingId=null; renderHistory(); renderRecent(); return;
-  }
-  if(btn.classList.contains('delete-btn')){
-    askDelete(Number(id)); return;
-  }
-  if(btn.classList.contains('save-edit-btn')){
-    if(mode==='date'){
-      var input=document.getElementById('di-'+id); if(!input||!input.value) return;
-      var parts=input.value.split('-');
-      for(var i=0;i<records.length;i++){
-        if(String(records[i].id)===id){
-          var orig=new Date(records[i].date);
-          orig.setFullYear(parseInt(parts[0])); orig.setMonth(parseInt(parts[1])-1); orig.setDate(parseInt(parts[2]));
-          records[i].date=orig.toISOString(); break;
-        }
-      }
-    } else if(mode==='amount'){
-      var input=document.getElementById('ai-'+id); if(!input) return;
-      var amt=parseInt(input.value); if(!amt||amt<=0){alert('正しい金額を入力してください');return;}
-      for(var i=0;i<records.length;i++){
-        if(String(records[i].id)===id){ records[i].amount=amt; break; }
-      }
-    }
-    editingId=null;
-    try{ localStorage.setItem('kakeibo_v1', JSON.stringify(records)); }catch(e){}
-    renderRecent(); renderHistory(); renderBalance(); renderSummary();
-  }
-});
 renderAll(); selPay('wallet');
 </script>
 </body>
