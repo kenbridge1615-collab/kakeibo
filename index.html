@@ -208,6 +208,13 @@ input:focus { outline: none; border-color: #555; background: #fff; }
           </div>
           <div id="card-select" style="display:none;margin-bottom:8px">
             <div id="card-btns" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+            <div id="billing-month-select" style="display:none;margin-top:8px">
+              <div style="font-size:12px;color:#888;margin-bottom:6px;font-weight:500">引き落とし月</div>
+              <div class="btn-group">
+                <button class="toggle-btn sel-card" id="billing-this" onclick="selBillingMonth('this')">今月</button>
+                <button class="toggle-btn" id="billing-next" onclick="selBillingMonth('next')">来月</button>
+              </div>
+            </div>
           </div>
           <div class="btn-group">
             <button class="toggle-btn sel-wallet" id="pay-wallet" onclick="selPay('wallet')">財布</button>
@@ -345,7 +352,7 @@ input:focus { outline: none; border-color: #555; background: #fff; }
     <input type="file" id="csv-import-input" accept=".csv,text/csv,text/plain,*/*" onchange="importCSV(event)" style="display:none" />
   </div>
 
-  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.7</div>
+  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.8</div>
 </div>
 
 <script>
@@ -365,6 +372,7 @@ if(!initBalance.bank) initBalance.bank={};
 if(!initBalance.offset) initBalance.offset={};
 if(!initBalance.bankOffset) initBalance.bankOffset={};
 function saveInitBalance(){ try{ localStorage.setItem('kakeibo_init', JSON.stringify(initBalance)); }catch(e){} }
+function cardBillingMonth(r){return r.billingMonth||fmtYM(r.date);}
 function bankInit(bid){ return (initBalance.bank&&(initBalance.bank[bid]||initBalance.bank[String(bid)]))||0; }
 // 全収支の累計（offset計算用）
 function calcRawBal(p){
@@ -786,6 +794,7 @@ function removeCreditCard(i){
 function updateCardBtns(){
   var area=document.getElementById('card-select');
   var btns=document.getElementById('card-btns');
+  var billingArea=document.getElementById('billing-month-select');
   if(!area||!btns)return;
   if(!creditCards.length){area.style.display='none';return;}
   area.style.display='block';
@@ -793,11 +802,15 @@ function updateCardBtns(){
     var sel=selectedCardId===c.id;
     return'<button onclick="selCard('+c.id+')" style="padding:8px 14px;border:1px solid '+(sel?'#a855f7':'#ddd')+';border-radius:8px;font-size:13px;background:'+(sel?'#f3e8ff':'#f5f5f5')+';color:'+(sel?'#7c3aed':'#888')+';cursor:pointer;font-family:inherit;font-weight:'+(sel?'600':'400')+'">'+c.name+'</button>';
   }).join('');
+  if(billingArea) billingArea.style.display=selectedCardId?'block':'none';
   if(!selectedCardId&&creditCards.length) selCard(creditCards[0].id);
 }
 function selCard(id){
   selectedCardId=id;
   updateCardBtns();
+  var billingArea=document.getElementById('billing-month-select');
+  if(billingArea) billingArea.style.display='block';
+  selBillingMonth(selBillingMonth_);
 }
 function renderSettingsBankList(){
   var el=document.getElementById('settings-bank-list');
@@ -858,6 +871,7 @@ function selBankAccount(id, silent){
 }
 
 var selType_ = 'expense', selPay_ = 'wallet', editingId = null, pendingId = null, filterPay = 'all';
+var selBillingMonth_ = 'this'; // 'this' or 'next'
 var trFrom_ = 'bank', trTo_ = 'paypay', trBankId = null;
 var graphOpen = false, filterMonth = 'all', histTab = 'records';
 var balMonth = 'current';
@@ -884,9 +898,15 @@ function selPay(p){
   });
   var bankArea=document.getElementById('bank-account-select');
   var cardArea=document.getElementById('card-select');
-  if(p==='bank'){updateBankAccountBtns();if(cardArea)cardArea.style.display='none';}
+  var billingArea=document.getElementById('billing-month-select');
+  if(p==='bank'){updateBankAccountBtns();if(cardArea)cardArea.style.display='none';if(billingArea)billingArea.style.display='none';}
   else if(p==='card'){updateCardBtns();if(bankArea)bankArea.style.display='none';}
-  else{if(bankArea)bankArea.style.display='none';if(cardArea)cardArea.style.display='none';}
+  else{if(bankArea)bankArea.style.display='none';if(cardArea)cardArea.style.display='none';if(billingArea)billingArea.style.display='none';}
+}
+function selBillingMonth(m){
+  selBillingMonth_=m;
+  document.getElementById('billing-this').className='toggle-btn'+(m==='this'?' sel-card':'');
+  document.getElementById('billing-next').className='toggle-btn'+(m==='next'?' sel-card':'');
 }
 function selFrom(p){
   trFrom_=p;
@@ -966,7 +986,17 @@ function addRecord(){
   if(!amt||amt<=0){alert('金額を入力してください');return;}
   var rec={id:Date.now(),type:selType_,amount:amt,pay:selPay_,note:note,date:new Date().toISOString()};
   if(selPay_==='bank'&&selectedBankId) rec.bankId=selectedBankId;
-  if(selPay_==='card'&&selectedCardId) rec.cardId=selectedCardId;
+  if(selPay_==='card'&&selectedCardId){
+    rec.cardId=selectedCardId;
+    // 引き落とし月をYYYY/MMで保存
+    var now=new Date();
+    if(selBillingMonth_==='next'){
+      var nm=new Date(now.getFullYear(),now.getMonth()+1,1);
+      rec.billingMonth=nm.getFullYear()+'/'+pad(nm.getMonth()+1);
+    } else {
+      rec.billingMonth=now.getFullYear()+'/'+pad(now.getMonth()+1);
+    }
+  }
   records.unshift(rec);
   save();document.getElementById('amount').value='';document.getElementById('note').value='';
   renderAll();
@@ -1235,9 +1265,10 @@ function payLbl(p,cardId){
   }
   return{wallet:'財布',paypay:'PayPay',suica:'Suica',bank:'銀行'}[p]||p;
 }
-function payTag(p,cardId){
+function payTag(p,cardId,billingMonth){
   if(p==='card'){
-    return'<span class="pay-tag" style="background:#f3e8ff;color:#7c3aed">'+payLbl(p,cardId)+'</span>';
+    var label=payLbl(p,cardId)+(billingMonth?' ('+billingMonth+'引落)':'');
+    return'<span class="pay-tag" style="background:#f3e8ff;color:#7c3aed">'+label+'</span>';
   }
   var bg={wallet:'#555',paypay:'#FF0033',suica:'#00FA9A',bank:'#ffca28'};
   var col={wallet:'#fff',paypay:'#fff',suica:'#005c38',bank:'#5f4000'};
@@ -1329,7 +1360,7 @@ function renderBalance(){
     var curYM2=now2.getFullYear()+'/'+pad(now2.getMonth()+1);
     html+='<div style="margin-top:10px">';
     creditCards.forEach(function(c){
-      var unpaid=records.filter(function(r){return r.pay==='card'&&r.cardId===c.id&&r.type==='expense'&&fmtYM(r.date)===curYM2;}).reduce(function(s,r){return s+r.amount;},0);
+      var unpaid=records.filter(function(r){return r.pay==='card'&&r.cardId===c.id&&r.type==='expense'&&cardBillingMonth(r)===curYM2;}).reduce(function(s,r){return s+r.amount;},0);
       var billingDate=new Date(now2.getFullYear(),now2.getMonth(),c.day);
       if(billingDate<now2) billingDate=new Date(now2.getFullYear(),now2.getMonth()+1,c.day);
       var daysLeft=Math.ceil((billingDate-now2)/(1000*60*60*24));
@@ -1354,7 +1385,7 @@ function recordHTML(r,showBtns){
   var bg=r.type==='income'?'background:#f0fff4;margin:0 -16px;padding:0 16px;border-radius:8px;':'';
   var html='<div class="record" style="'+bg+'"><div class="record-top">'+
     '<div class="record-date">'+ts.date+'<br><span style="font-size:11px;color:#bbb">'+ts.time+'</span></div>'+
-    '<div class="record-mid"><div class="record-name">'+r.note+'</div>'+payTag(r.pay,r.cardId)+'</div>'+
+    '<div class="record-mid"><div class="record-name">'+r.note+'</div>'+payTag(r.pay,r.cardId,r.billingMonth)+'</div>'+
     '<div class="record-amount" style="color:'+col+'">'+sign+yen(r.amount)+'</div></div>';
   if(showBtns){
     html+='<div class="record-btns">'+
@@ -1393,11 +1424,11 @@ function renderCard(){
   creditCards.forEach(function(c){
     var bank=bankAccounts.find(function(b){return b.id===c.bankId;});
     // 今月の未払い額
-    var unpaid=records.filter(function(r){return r.pay==='card'&&r.cardId===c.id&&r.type==='expense'&&fmtYM(r.date)===curYM;}).reduce(function(s,r){return s+r.amount;},0);
+    var unpaid=records.filter(function(r){return r.pay==='card'&&r.cardId===c.id&&r.type==='expense'&&cardBillingMonth(r)===curYM;}).reduce(function(s,r){return s+r.amount;},0);
     // 先月の未払い額（次の引落とし対象）
     var prevDate=new Date(now.getFullYear(),now.getMonth()-1,1);
     var prevYM=prevDate.getFullYear()+'/'+pad(prevDate.getMonth()+1);
-    var nextBilling=records.filter(function(r){return r.pay==='card'&&r.cardId===c.id&&r.type==='expense'&&fmtYM(r.date)===prevYM;}).reduce(function(s,r){return s+r.amount;},0);
+    var nextBilling=records.filter(function(r){return r.pay==='card'&&r.cardId===c.id&&r.type==='expense'&&cardBillingMonth(r)===prevYM;}).reduce(function(s,r){return s+r.amount;},0);
     // 引落とし日まで何日？
     var billingDate=new Date(now.getFullYear(),now.getMonth(),c.day);
     if(billingDate<now) billingDate=new Date(now.getFullYear(),now.getMonth()+1,c.day);
@@ -1425,7 +1456,7 @@ function renderCard(){
       // 今月の明細
       '<div style="margin-top:12px;font-size:12px;font-weight:600;color:#666;margin-bottom:6px">今月の使用明細</div>'+
       (function(){
-        var items=records.filter(function(r){return r.pay==='card'&&r.cardId===c.id&&r.type==='expense'&&fmtYM(r.date)===curYM;});
+        var items=records.filter(function(r){return r.pay==='card'&&r.cardId===c.id&&r.type==='expense'&&cardBillingMonth(r)===curYM;});
         if(!items.length)return'<div style="font-size:13px;color:#aaa;text-align:center;padding:8px">使用履歴なし</div>';
         return items.map(function(r){
           var ts=fmt(r.date);
