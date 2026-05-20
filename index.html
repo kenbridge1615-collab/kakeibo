@@ -23,6 +23,7 @@ input:focus { outline: none; border-color: #555; background: #fff; }
 .toggle-btn { flex: 1; padding: 12px 8px; border: 1px solid #ddd; border-radius: 8px; text-align: center; cursor: pointer; font-size: 15px; background: #f5f5f5; color: #888; font-family: inherit; font-weight: 500; }
 .toggle-btn.sel-income { background: #e8f5e9; color: #2e7d32; border-color: #66bb6a; }
 .toggle-btn.sel-expense { background: #ffeaea; color: #c62828; border-color: #ef9a9a; }
+.toggle-btn.sel-salary { background: #e3f2fd; color: #1565c0; border-color: #90caf9; }
 .toggle-btn.sel-wallet { background: #e8e8e8; color: #222; border-color: #888; }
 .toggle-btn.sel-paypay { background: #fff0f0; color: #cc0000; border-color: #FF0033; }
 .toggle-btn.sel-suica { background: #e0fff5; color: #007a50; border-color: #00FA9A; }
@@ -58,6 +59,8 @@ input:focus { outline: none; border-color: #555; background: #fff; }
 .filter-btn.active.f-wallet { background: #555; border-color: #555; }
 .filter-btn.active.f-paypay { background: #FF0033; border-color: #FF0033; }
 .filter-btn.active.f-suica { background: #00c87a; border-color: #00c87a; }
+.filter-btn.active.f-bank { background: #f59e0b; border-color: #f59e0b; color:#fff; }
+.filter-btn.active.f-card { background: #7c3aed; border-color: #7c3aed; color:#fff; }
 .period-sel { font-size: 15px; padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; background: #f5f5f5; color: #1a1a1a; font-family: inherit; }
 .sum-table { width: 100%; font-size: 13px; border-collapse: collapse; table-layout: fixed; }
 .sum-table th { font-weight: 600; color: #888; text-align: right; padding: 8px 6px; border-bottom: 1px solid #eee; font-size: 12px; }
@@ -104,18 +107,6 @@ input:focus { outline: none; border-color: #555; background: #fff; }
       <div class="dialog-title" style="margin:0">設定</div>
       <button onclick="closeSettings()" style="background:none;border:none;font-size:22px;color:#aaa;cursor:pointer;line-height:1">×</button>
     </div>
-
-    <!-- 給料設定 -->
-    <div style="font-size:13px;font-weight:600;color:#555;margin-bottom:8px">給料設定</div>
-    <div class="form-row">
-      <label>時給（円）</label>
-      <input type="number" id="set-hourly" placeholder="例: 1000" inputmode="numeric" />
-    </div>
-    <div class="form-row">
-      <label>交通費（1回あたり・円）</label>
-      <input type="number" id="set-transport" placeholder="例: 300" inputmode="numeric" />
-    </div>
-    <button onclick="saveJobSettings()" style="width:100%;padding:11px;background:#3949ab;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;margin-bottom:20px">給料設定を保存</button>
 
     <!-- 初期残高 -->
     <div style="font-size:13px;font-weight:600;color:#555;margin-bottom:4px">初期残高の設定</div>
@@ -168,7 +159,6 @@ input:focus { outline: none; border-color: #555; background: #fff; }
   <div class="tabs">
     <button class="tab active" onclick="showTab('balance')">残高</button>
     <button class="tab" onclick="showTab('input')">入力</button>
-    <button class="tab" onclick="showTab('shift')">シフト</button>
     <button class="tab" onclick="showTab('history')">履歴</button>
     <button class="tab" onclick="showTab('summary')">集計</button>
   </div>
@@ -186,6 +176,7 @@ input:focus { outline: none; border-color: #555; background: #fff; }
         <div class="btn-group">
           <button class="toggle-btn" id="btn-income" onclick="selType('income')">収入</button>
           <button class="toggle-btn sel-expense" id="btn-expense" onclick="selType('expense')">支出</button>
+          <button class="toggle-btn" id="btn-salary" onclick="selType('salary')">給与</button>
           <button class="toggle-btn" id="btn-transfer" onclick="selType('transfer')">移動</button>
         </div>
       </div>
@@ -223,6 +214,10 @@ input:focus { outline: none; border-color: #555; background: #fff; }
         <div class="form-row">
           <label>内容</label>
           <input type="text" id="note" placeholder="例: コンビニでコーヒー" />
+        </div>
+        <div class="form-row">
+          <label>日付</label>
+          <input type="date" id="record-date" />
         </div>
         <button class="submit-btn" onclick="addRecord()">記録する</button>
       </div>
@@ -263,58 +258,22 @@ input:focus { outline: none; border-color: #555; background: #fff; }
   </div>
 
   <!-- 履歴 -->
-  <!-- シフト -->
-  <div id="tab-shift" class="section">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <span style="font-size:16px;font-weight:600">シフト・給料計算</span>
-      <div style="display:flex;gap:8px;align-items:center">
-        <button onclick="shiftCalPrev()" style="background:none;border:1px solid #ddd;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:14px">◀</button>
-        <span id="shift-cal-label" style="font-size:14px;font-weight:500;min-width:72px;text-align:center"></span>
-        <button onclick="shiftCalNext()" style="background:none;border:1px solid #ddd;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:14px">▶</button>
-      </div>
     </div>
-    <!-- カレンダー -->
-    <div class="card" style="padding:12px">
-      <div id="shift-calendar"></div>
-    </div>
-    <!-- 給料サマリー -->
-    <div id="shift-summary-card" class="card"></div>
-    <!-- シフト入力フォーム（日付タップで展開） -->
-    <div id="shift-input-area" class="card" style="display:none">
-      <div style="font-size:13px;font-weight:600;color:#3949ab;margin-bottom:12px" id="shift-input-label">シフトを追加</div>
-      <div style="display:flex;gap:8px;margin-bottom:16px">
-        <div style="flex:1">
-          <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;font-weight:500">開始</label>
-          <input type="time" id="shift-start" style="width:100%;font-size:16px;padding:12px;border:1px solid #ddd;border-radius:8px;background:#fafafa;font-family:inherit" />
-        </div>
-        <div style="flex:1">
-          <label style="font-size:13px;color:#666;display:block;margin-bottom:8px;font-weight:500">終了</label>
-          <input type="time" id="shift-end" style="width:100%;font-size:16px;padding:12px;border:1px solid #ddd;border-radius:8px;background:#fafafa;font-family:inherit" />
-        </div>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button class="submit-btn" style="background:#3949ab" onclick="addShift()">追加</button>
-        <button class="cncl-btn" style="flex:0.4" onclick="closeShiftInput()">取消</button>
-      </div>
-    </div>
-    <!-- シフト詳細（日付タップで表示） -->
-    <div id="shift-detail-area" class="card" style="display:none">
-      <div id="shift-detail-content"></div>
-    </div>
-  </div>
-
   <div id="tab-history" class="section">
     <div style="display:flex;gap:8px;margin-bottom:12px">
       <button class="filter-btn active" id="hist-tab-records" onclick="setHistTab('records')" style="flex:1;text-align:center">収支履歴</button>
       <button class="filter-btn" id="hist-tab-transfers" onclick="setHistTab('transfers')" style="flex:1;text-align:center">移動履歴</button>
     </div>
     <div id="hist-records-area">
-      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-        <button class="filter-btn active" id="filter-all" onclick="setFilter('all')">すべて</button>
-        <button class="filter-btn" id="filter-wallet" onclick="setFilter('wallet')">財布</button>
-        <button class="filter-btn" id="filter-paypay" onclick="setFilter('paypay')">PayPay</button>
-        <button class="filter-btn" id="filter-suica" onclick="setFilter('suica')">Suica</button>
+      <!-- 種別フィルター -->
+      <div style="display:flex;gap:6px;margin-bottom:8px">
+        <button class="filter-btn active" id="ftype-all" onclick="setFilterType('all')" style="flex:1">すべて</button>
+        <button class="filter-btn" id="ftype-income" onclick="setFilterType('income')" style="flex:1;color:#2e7d32">収入</button>
+        <button class="filter-btn" id="ftype-expense" onclick="setFilterType('expense')" style="flex:1;color:#c62828">支出</button>
+        <button class="filter-btn" id="ftype-salary" onclick="setFilterType('salary')" style="flex:1;color:#1565c0">給与</button>
       </div>
+      <!-- 支払い形態フィルター（銀行・カードは動的生成） -->
+      <div id="pay-filter-bar" style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap"></div>
       <div class="card">
         <div class="metric-grid" id="hist-metrics"></div>
         <div id="history-list"></div>
@@ -350,7 +309,7 @@ input:focus { outline: none; border-color: #555; background: #fff; }
     <input type="file" id="csv-import-input" accept=".csv,text/csv,text/plain,*/*" onchange="importCSV(event)" style="display:none" />
   </div>
 
-  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.14</div>
+  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.25</div>
 </div>
 
 <script>
@@ -371,17 +330,19 @@ if(!initBalance.offset) initBalance.offset={};
 if(!initBalance.bankOffset) initBalance.bankOffset={};
 function saveInitBalance(){ try{ localStorage.setItem('kakeibo_init', JSON.stringify(initBalance)); }catch(e){} }
 function cardBillingMonth(r){return r.billingMonth||fmtYM(r.date);}
+// 集計用月キー：カードはbillingMonth、それ以外は入力日
+function recMonth(r){return r.pay==='card'?cardBillingMonth(r):fmtYM(r.date);}
 function bankInit(bid){ return (initBalance.bank&&(initBalance.bank[bid]||initBalance.bank[String(bid)]))||0; }
 // 全収支の累計（offset計算用）
 function calcRawBal(p){
-  var inc=records.filter(function(r){return r.pay===p&&r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
+  var inc=records.filter(function(r){return r.pay===p&&(r.type==='income'||r.type==='salary');}).reduce(function(s,r){return s+r.amount;},0);
   var exp=records.filter(function(r){return r.pay===p&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
   var trIn=transfers.filter(function(t){return t.to===p;}).reduce(function(s,t){return s+t.amount;},0);
   var trOut=transfers.filter(function(t){return t.from===p;}).reduce(function(s,t){return s+t.amount;},0);
   return inc-exp+trIn-trOut;
 }
 function calcRawBankBal(bid){
-  var inc=records.filter(function(r){return r.pay==='bank'&&r.bankId===bid&&r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
+  var inc=records.filter(function(r){return r.pay==='bank'&&r.bankId===bid&&(r.type==='income'||r.type==='salary');}).reduce(function(s,r){return s+r.amount;},0);
   var exp=records.filter(function(r){return r.pay==='bank'&&r.bankId===bid&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
   var trIn=transfers.filter(function(t){return t.to==='bank'&&t.bankId===bid;}).reduce(function(s,t){return s+t.amount;},0);
   var trOut=transfers.filter(function(t){return t.from==='bank'&&t.bankId===bid;}).reduce(function(s,t){return s+t.amount;},0);
@@ -524,218 +485,10 @@ function applyInitBalance(){
   renderAll();
   alert('初期残高を保存しました！');
 }
-// シフトデータ
-var shifts = JSON.parse(localStorage.getItem('kakeibo_shifts') || '[]');
-var jobSettings = JSON.parse(localStorage.getItem('kakeibo_job') || '{"hourly":0,"transport":0}');
-var shiftCalYear = new Date().getFullYear();
-var shiftCalMonth = new Date().getMonth(); // 0-indexed
-var selectedShiftDate = null;
-
-function saveShifts(){ try{ localStorage.setItem('kakeibo_shifts', JSON.stringify(shifts)); }catch(e){} }
-function saveJobSettings(){
-  var h=parseInt(document.getElementById('set-hourly').value)||0;
-  var t=parseInt(document.getElementById('set-transport').value)||0;
-  jobSettings={hourly:h,transport:t};
-  try{ localStorage.setItem('kakeibo_job', JSON.stringify(jobSettings)); }catch(e){}
-  closeSettings();renderShift();
-  alert('給料設定を保存しました！');
-}
-
-function shiftCalPrev(){ shiftCalMonth--; if(shiftCalMonth<0){shiftCalMonth=11;shiftCalYear--;} renderShift(); }
-function shiftCalNext(){ shiftCalMonth++; if(shiftCalMonth>11){shiftCalMonth=0;shiftCalYear++;} renderShift(); }
-
-function onCalDayClick(dateStr){
-  selectedShiftDate=dateStr;
-  var dayShifts=shifts.filter(function(s){return s.date===dateStr;});
-  var d=new Date(dateStr);
-  var dow=['日','月','火','水','木','金','土'][d.getDay()];
-  var label=(d.getMonth()+1)+'/'+d.getDate()+'('+dow+')';
-  if(dayShifts.length){
-    // 既存シフトの詳細表示
-    document.getElementById('shift-input-area').style.display='none';
-    var det=document.getElementById('shift-detail-area');
-    var detContent=document.getElementById('shift-detail-content');
-    det.style.display='block';
-    detContent.innerHTML='<div style="font-size:13px;font-weight:600;color:#3949ab;margin-bottom:10px">'+label+' のシフト</div>'+
-      dayShifts.map(function(s){
-        var p=calcShiftPay(s);
-        return'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0">'+
-          '<div>'+
-            '<div style="font-size:14px">'+s.start+' 〜 '+s.end+'</div>'+
-            '<div style="font-size:12px;color:#888">'+Math.floor(p.totalMin/60)+'h'+p.totalMin%60+'m'+(p.nightMin>0?' / 深夜'+Math.floor(p.nightMin/60)+'h'+p.nightMin%60+'m':'')+' / '+yen(p.pay+p.transport)+'</div>'+
-          '</div>'+
-          '<button onclick="deleteShift('+s.id+')" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:13px;padding:4px 8px">削除</button>'+
-        '</div>';
-      }).join('')+
-      '<button onclick="openShiftInput(\''+dateStr+'\',\''+label+'\')" style="width:100%;margin-top:10px;padding:9px;background:#f0f4ff;color:#3949ab;border:1px solid #c5cae9;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit">＋ この日にシフトを追加</button>';
-  } else {
-    // 新規追加フォームを表示
-    document.getElementById('shift-detail-area').style.display='none';
-    openShiftInput(dateStr,label);
-  }
-  renderCalendar();
-}
-function openShiftInput(dateStr,label){
-  selectedShiftDate=dateStr;
-  document.getElementById('shift-input-label').textContent=label+' のシフトを追加';
-  document.getElementById('shift-start').value='';
-  document.getElementById('shift-end').value='';
-  document.getElementById('shift-input-area').style.display='block';
-  document.getElementById('shift-input-area').scrollIntoView({behavior:'smooth',block:'start'});
-}
-function closeShiftInput(){
-  document.getElementById('shift-input-area').style.display='none';
-  document.getElementById('shift-detail-area').style.display='none';
-  selectedShiftDate=null;
-  renderCalendar();
-}
-
-function addShift(){
-  var start=document.getElementById('shift-start').value;
-  var end=document.getElementById('shift-end').value;
-  if(!selectedShiftDate||!start||!end){alert('開始・終了を入力してください');return;}
-  shifts.unshift({id:Date.now(),date:selectedShiftDate,start:start,end:end});
-  saveShifts();
-  document.getElementById('shift-input-area').style.display='none';
-  document.getElementById('shift-detail-area').style.display='none';
-  selectedShiftDate=null;
-  renderShift();
-}
-function deleteShift(id){
-  shifts=shifts.filter(function(s){return s.id!==id;});
-  saveShifts();
-  document.getElementById('shift-detail-area').style.display='none';
-  selectedShiftDate=null;
-  renderShift();
-}
-
-function calcShiftPay(s){
-  var startH=parseInt(s.start.split(':')[0]),startM=parseInt(s.start.split(':')[1]);
-  var endH=parseInt(s.end.split(':')[0]),endM=parseInt(s.end.split(':')[1]);
-  var startMin=startH*60+startM;
-  var endMin=endH*60+endM;
-  if(endMin<=startMin) endMin+=24*60;
-  var totalMin=endMin-startMin;
-  var normalMin=0,nightMin=0;
-  for(var m=startMin;m<endMin;m++){
-    var t=m%(24*60);
-    if(t>=22*60||t<5*60) nightMin++;
-    else normalMin++;
-  }
-  var hourly=jobSettings.hourly||0;
-  var normalPay=normalMin/60*hourly;
-  var nightPay=nightMin/60*hourly*1.25;
-  return{totalMin:totalMin,normalMin:normalMin,nightMin:nightMin,pay:Math.floor(normalPay+nightPay),transport:jobSettings.transport||0};
-}
-
-function renderCalendar(){
-  var el=document.getElementById('shift-calendar');
-  if(!el)return;
-  var y=shiftCalYear,m=shiftCalMonth;
-  var first=new Date(y,m,1);
-  var last=new Date(y,m+1,0);
-  var days=['日','月','火','水','木','金','土'];
-  // シフトのある日付セット
-  var shiftDates={};
-  shifts.forEach(function(s){
-    var sm=new Date(s.date);
-    if(sm.getFullYear()===y&&sm.getMonth()===m) shiftDates[s.date]=true;
-  });
-  var today=new Date();
-  var todayStr=today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate());
-
-  var html='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:6px">';
-  days.forEach(function(d,i){
-    html+='<div style="text-align:center;font-size:11px;font-weight:600;color:'+(i===0?'#e53935':i===6?'#1e88e5':'#888')+';padding:4px 0">'+d+'</div>';
-  });
-  html+='</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">';
-  // 空白
-  for(var i=0;i<first.getDay();i++) html+='<div></div>';
-  // 日付
-  for(var d=1;d<=last.getDate();d++){
-    var dateStr=y+'-'+pad(m+1)+'-'+pad(d);
-    var dow=new Date(y,m,d).getDay();
-    var hasShift=shiftDates[dateStr];
-    var isToday=dateStr===todayStr;
-    var isSel=dateStr===selectedShiftDate;
-    var color=dow===0?'#e53935':dow===6?'#1e88e5':'#1a1a1a';
-    html+='<div onclick="onCalDayClick(\''+dateStr+'\')" style="'+
-      'text-align:center;padding:6px 2px;border-radius:8px;cursor:pointer;'+
-      'background:'+(isSel?'#3949ab':isToday?'#e8eaf6':hasShift?'#c5cae9':'transparent')+';'+
-      'color:'+(isSel?'#fff':color)+';'+
-      'font-weight:'+(isToday||isSel?'700':'400')+';'+
-      'font-size:14px;'+
-      'border:'+(isToday&&!isSel?'1px solid #3949ab':'1px solid transparent')+
-    '">'+d+(hasShift?'<div style="width:5px;height:5px;border-radius:50%;background:'+(isSel?'#fff':'#3949ab')+';margin:2px auto 0"></div>':'<div style="height:7px"></div>')+'</div>';
-  }
-  html+='</div>';
-  el.innerHTML=html;
-}
 
 
-function addShift(){
-  var start=document.getElementById('shift-start').value;
-  var end=document.getElementById('shift-end').value;
-  if(!selectedShiftDate||!start||!end){alert('開始・終了を入力してください');return;}
-  shifts.unshift({id:Date.now(),date:selectedShiftDate,start:start,end:end});
-  saveShifts();
-  document.getElementById('shift-input-area').style.display='none';
-  document.getElementById('shift-detail-area').style.display='none';
-  selectedShiftDate=null;
-  renderShift();
-}
-function deleteShift(id){
-  shifts=shifts.filter(function(s){return s.id!==id;});
-  saveShifts();
-  document.getElementById('shift-detail-area').style.display='none';
-  selectedShiftDate=null;
-  renderShift();
-}
-function renderShift(){
-  var labelEl=document.getElementById('shift-cal-label');
-  if(labelEl) labelEl.textContent=shiftCalYear+'/'+(shiftCalMonth+1)+'月';
-  renderCalendar();
-  var monthShifts=shifts.filter(function(s){
-    var d=new Date(s.date);return d.getFullYear()===shiftCalYear&&d.getMonth()===shiftCalMonth;
-  });
-  var totalPay=0,totalMin=0,totalNightMin=0,totalTransport=0;
-  monthShifts.forEach(function(s){
-    var p=calcShiftPay(s);
-    totalPay+=p.pay;totalMin+=p.totalMin;totalNightMin+=p.nightMin;totalTransport+=p.transport;
-  });
-  var grossPay=totalPay+totalTransport;
-  var summaryEl=document.getElementById('shift-summary-card');
-  if(summaryEl){
-    summaryEl.innerHTML=
-      '<div style="font-size:13px;font-weight:600;color:#3949ab;margin-bottom:12px">'+shiftCalYear+'/'+(shiftCalMonth+1)+'月 の給料予測</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'+
-        '<div style="background:#f0f4ff;border-radius:8px;padding:12px;text-align:center">'+
-          '<div style="font-size:11px;color:#888;margin-bottom:4px">シフト数</div>'+
-          '<div style="font-size:20px;font-weight:700;color:#3949ab">'+monthShifts.length+'回</div>'+
-        '</div>'+
-        '<div style="background:#f0f4ff;border-radius:8px;padding:12px;text-align:center">'+
-          '<div style="font-size:11px;color:#888;margin-bottom:4px">合計時間</div>'+
-          '<div style="font-size:20px;font-weight:700;color:#3949ab">'+Math.floor(totalMin/60)+'h'+totalMin%60+'m</div>'+
-        '</div>'+
-      '</div>'+
-      '<div style="background:#f0f4ff;border-radius:8px;padding:14px">'+
-        '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px">'+
-          '<span style="color:#666">時給分</span><span>'+yen(totalPay)+'</span>'+
-        '</div>'+
-        (totalNightMin>0?'<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px">'+
-          '<span style="color:#666">うち深夜割増</span><span style="color:#e65100">（×1.25 込み）</span>'+
-        '</div>':'')+
-        (totalTransport>0?'<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px">'+
-          '<span style="color:#666">交通費（'+monthShifts.length+'回分）</span><span>+'+yen(totalTransport)+'</span>'+
-        '</div>':'')+
-        '<div style="border-top:1px solid #c5cae9;margin:8px 0"></div>'+
-        '<div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700">'+
-          '<span style="color:#3949ab">予測合計</span><span style="color:#3949ab">'+yen(grossPay)+'</span>'+
-        '</div>'+
-        (!jobSettings.hourly?'<div style="font-size:12px;color:#aaa;margin-top:8px">設定から時給を登録してください</div>':'')+
-      '</div>';
-  }
-}
+
+
 
 function openSettings(){
   renderSettingsBankList();
@@ -748,8 +501,6 @@ function openSettings(){
   }
   // 初期残高フィールドを動的生成（財布・PayPay・Suica・銀行口座）
   renderInitBalanceRows();
-  document.getElementById('set-hourly').value=jobSettings.hourly||'';
-  document.getElementById('set-transport').value=jobSettings.transport||'';
   document.getElementById('settings-overlay').classList.add('open');
 }
 function closeSettings(){
@@ -868,7 +619,7 @@ function selBankAccount(id, silent){
   if(!silent) updateBankAccountBtns();
 }
 
-var selType_ = 'expense', selPay_ = 'wallet', pendingId = null, filterPay = 'all';
+var selType_ = 'expense', selPay_ = 'wallet', pendingId = null, filterPay = 'all', filterType = 'all';
 var selBillingMonth_ = 'this'; // 'this' or 'next'
 var trFrom_ = 'bank', trTo_ = 'paypay', trBankId = null;
 var graphOpen = false, filterMonth = 'all', histTab = 'records';
@@ -881,6 +632,7 @@ function selType(t){
   selType_=t;
   document.getElementById('btn-income').className='toggle-btn'+(t==='income'?' sel-income':'');
   document.getElementById('btn-expense').className='toggle-btn'+(t==='expense'?' sel-expense':'');
+  document.getElementById('btn-salary').className='toggle-btn'+(t==='salary'?' sel-salary':'');
   document.getElementById('btn-transfer').className='toggle-btn'+(t==='transfer'?' sel-transfer':'');
   document.getElementById('form-normal').style.display=t==='transfer'?'none':'block';
   document.getElementById('form-transfer').style.display=t==='transfer'?'block':'none';
@@ -942,12 +694,32 @@ function setHistTab(t){
   document.getElementById('hist-records-area').style.display=t==='records'?'block':'none';
   document.getElementById('hist-transfers-area').style.display=t==='transfers'?'block':'none';
 }
-function setFilter(p){
-  filterPay=p;
-  ['all','wallet','paypay','suica'].forEach(function(x){
-    document.getElementById('filter-'+x).className='filter-btn'+(x===p?' active f-'+x:'');
+function setFilterType(t){
+  filterType=t;
+  ['all','income','expense','salary'].forEach(function(k){
+    var el=document.getElementById('ftype-'+k);
+    if(el) el.className='filter-btn'+(k===t?' active':'');
   });
   renderHistory();
+}
+function setFilter(p){
+  filterPay=p;
+  renderPayFilterBar();
+  renderHistory();
+}
+function renderPayFilterBar(){
+  var items=[{id:'all',label:'全形態',cls:''}];
+  items.push({id:'wallet',label:'財布',cls:'f-wallet'});
+  items.push({id:'paypay',label:'PayPay',cls:'f-paypay'});
+  items.push({id:'suica',label:'Suica',cls:'f-suica'});
+  bankAccounts.forEach(function(b){items.push({id:'bank:'+b.id,label:b.name,cls:'f-bank'});});
+  creditCards.forEach(function(c){items.push({id:'card:'+c.id,label:c.name,cls:'f-card'});});
+  var bar=document.getElementById('pay-filter-bar');
+  if(!bar)return;
+  bar.innerHTML=items.map(function(it){
+    var active=filterPay===it.id;
+    return'<button class="filter-btn'+(active?' active '+it.cls:'')+'" data-fid="'+it.id+'" onclick="setFilter(this.dataset.fid)">'+it.label+'</button>';
+  }).join('');
 }
 function setBalMonth(m){ balMonth=m; renderBalance(); }
 function setMonthFilter(m){
@@ -958,16 +730,16 @@ function setMonthFilter(m){
   renderSummary();
 }
 function showTab(t){
-  ['balance','input','shift','history','summary'].forEach(function(x){
+  ['balance','input','history','summary'].forEach(function(x){
     var el=document.getElementById('tab-'+x);
     if(el)el.classList.toggle('active',x===t);
   });
   var tabBtns=document.querySelectorAll('.tabs .tab');
-  var order=['balance','input','shift','history','summary'];
+  var order=['balance','input','history','summary'];
   tabBtns.forEach(function(el,i){
     el.classList.toggle('active',order[i]===t);
   });
-  if(t==='shift')renderShift();
+  if(t==='input'){var de=document.getElementById('record-date');if(de&&!de.value)de.value=todayVal();}
   if(t==='history')renderHistory();
   if(t==='summary'){renderSummary();renderCard();}
 }
@@ -982,7 +754,13 @@ function addRecord(){
   var amt=parseInt(document.getElementById('amount').value);
   var note=document.getElementById('note').value.trim();
   if(!amt||amt<=0){alert('金額を入力してください');return;}
-  var rec={id:Date.now(),type:selType_,amount:amt,pay:selPay_,note:note,date:new Date().toISOString()};
+  var dateEl=document.getElementById('record-date');
+  var recDate=new Date();
+  if(dateEl&&dateEl.value){
+    var dp=dateEl.value.split('-');
+    recDate=new Date(parseInt(dp[0]),parseInt(dp[1])-1,parseInt(dp[2]),recDate.getHours(),recDate.getMinutes());
+  }
+  var rec={id:Date.now(),type:selType_,amount:amt,pay:selPay_,note:note,date:recDate.toISOString()};
   if(selPay_==='bank'&&selectedBankId) rec.bankId=selectedBankId;
   if(selPay_==='card'&&selectedCardId){
     rec.cardId=selectedCardId;
@@ -996,7 +774,10 @@ function addRecord(){
     }
   }
   records.unshift(rec);
-  save();document.getElementById('amount').value='';document.getElementById('note').value='';
+  save();
+  document.getElementById('amount').value='';
+  document.getElementById('note').value='';
+  var de=document.getElementById('record-date');if(de)de.value=todayVal();
   renderAll();
 }
 function addTransfer(){
@@ -1226,6 +1007,7 @@ function importCSV(e){
 }
 
 function pad(n){return String(n).padStart(2,'0');}
+function todayVal(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
 function fmt(iso){var d=new Date(iso);return{date:(d.getMonth()+1)+'/'+d.getDate(),time:pad(d.getHours())+':'+pad(d.getMinutes())};}
 function fmtYM(iso){var d=new Date(iso);return d.getFullYear()+'/'+pad(d.getMonth()+1);}
 function fmtDay(iso){var d=new Date(iso);return d.getFullYear()+'/'+pad(d.getMonth()+1)+'/'+pad(d.getDate());}
@@ -1249,7 +1031,6 @@ function yen(n){return '\u00a5'+Math.abs(n).toLocaleString();}
 
 function renderAll(){
   renderBalance();renderRecent();renderTransfers();renderHistory();
-  if(document.getElementById('tab-shift')&&document.getElementById('tab-shift').classList.contains('active'))renderShift();
   if(document.getElementById('tab-summary').classList.contains('active')){renderSummary();renderCard();}
 }
 function renderBalance(){
@@ -1271,8 +1052,8 @@ function renderBalance(){
   }
 
   function calcMonthly(p){
-    var inc=records.filter(function(r){return r.pay===p&&r.type==='income'&&fmtYM(r.date)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
-    var exp=records.filter(function(r){return r.pay===p&&r.type==='expense'&&fmtYM(r.date)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
+    var inc=records.filter(function(r){return r.pay===p&&r.type==='income'&&recMonth(r)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
+    var exp=records.filter(function(r){return r.pay===p&&(r.type==='expense')&&recMonth(r)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
     return{inc:inc,exp:exp};
   }
 
@@ -1287,8 +1068,8 @@ function renderBalance(){
       var init=bankInit(b.id);
       var bankOffset=initBalance.bankOffset[String(b.id)]||0;
       var bal=init + calcRawBankBal(b.id) - bankOffset;
-      var mInc=records.filter(function(r){return r.pay==='bank'&&r.bankId===b.id&&r.type==='income'&&fmtYM(r.date)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
-      var mExp=records.filter(function(r){return r.pay==='bank'&&r.bankId===b.id&&r.type==='expense'&&fmtYM(r.date)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
+      var mInc=records.filter(function(r){return r.pay==='bank'&&r.bankId===b.id&&r.type==='income'&&recMonth(r)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
+      var mExp=records.filter(function(r){return r.pay==='bank'&&r.bankId===b.id&&(r.type==='expense')&&recMonth(r)===targetYM;}).reduce(function(s,r){return s+r.amount;},0);
       html+='<div style="background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:8px">'+
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'+
           '<span style="display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;background:#ffca28;color:#5f4000;font-weight:700">'+b.name+'</span>'+
@@ -1352,7 +1133,7 @@ function renderBalance(){
   document.getElementById('balance-area').innerHTML=html;
 }
 function recordHTML(r,showBtns){
-  var ts=fmt(r.date),col=r.type==='income'?'#2e7d32':'#c62828',sign=r.type==='income'?'+':'-';
+  var ts=fmt(r.date),col=r.type==='income'?'#2e7d32':r.type==='salary'?'#1565c0':'#c62828',sign=(r.type==='income'||r.type==='salary')?'+':'-';
   var bg=r.type==='income'?'background:#f0fff4;margin:0 -16px;padding:0 16px;border-radius:8px;':'';
   var html='<div class="record" style="'+bg+'"><div class="record-top">'+
     '<div class="record-date">'+ts.date+'<br><span style="font-size:11px;color:#bbb">'+ts.time+'</span></div>'+
@@ -1434,7 +1215,7 @@ function processCardBilling(cardId){
   var now=new Date();
   var prevDate=new Date(now.getFullYear(),now.getMonth()-1,1);
   var prevYM=prevDate.getFullYear()+'/'+pad(prevDate.getMonth()+1);
-  var amount=records.filter(function(r){return r.pay==='card'&&r.cardId===cardId&&r.type==='expense'&&fmtYM(r.date)===prevYM;}).reduce(function(s,r){return s+r.amount;},0);
+  var amount=records.filter(function(r){return r.pay==='card'&&r.cardId===cardId&&r.type==='expense'&&cardBillingMonth(r)===prevYM;}).reduce(function(s,r){return s+r.amount;},0);
   if(!amount){alert('引落とし額がありません');return;}
   // 銀行からの支出として記録
   records.unshift({id:Date.now(),type:'expense',amount:amount,pay:'bank',bankId:c.bankId,note:c.name+'引落とし',date:new Date().toISOString()});
@@ -1451,6 +1232,7 @@ function setHistMonth(m){
   renderHistory();
 }
 function renderHistory(){
+  renderPayFilterBar();
   var el=document.getElementById('history-list'),met=document.getElementById('hist-metrics');
   if(!records.length){el.innerHTML='<div class="empty">まだ記録がありません</div>';met.innerHTML='';return;}
 
@@ -1460,8 +1242,20 @@ function renderHistory(){
   var prevYM=prevDate.getFullYear()+'/'+pad(prevDate.getMonth()+1);
   var targetYM=histMonth==='prev'?prevYM:curYM;
 
-  var filtered=filterPay==='all'?records:records.filter(function(r){return r.pay===filterPay;});
-  var monthFiltered=filtered.filter(function(r){return fmtYM(r.date)===targetYM;});
+  var filtered=records;
+  if(filterPay!=='all'){
+    if(filterPay.indexOf('bank:')===0){
+      var bfid=parseFloat(filterPay.slice(5));
+      filtered=filtered.filter(function(r){return r.pay==='bank'&&r.bankId===bfid;});
+    } else if(filterPay.indexOf('card:')===0){
+      var cfid=parseFloat(filterPay.slice(5));
+      filtered=filtered.filter(function(r){return r.pay==='card'&&r.cardId===cfid;});
+    } else {
+      filtered=filtered.filter(function(r){return r.pay===filterPay;});
+    }
+  }
+  if(filterType!=='all') filtered=filtered.filter(function(r){return r.type===filterType;});
+  var monthFiltered=filtered.filter(function(r){return recMonth(r)===targetYM;});
   var inc=monthFiltered.filter(function(r){return r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
   var exp=monthFiltered.filter(function(r){return r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
   var bal=inc-exp;
@@ -1502,12 +1296,12 @@ function renderSummary(){
   var tagBg={wallet:'#555',paypay:'#FF0033',suica:'#00FA9A'};
   var tagCol={wallet:'#fff',paypay:'#fff',suica:'#005c38'};
   if(mode==='day'){
-    var months=[];records.forEach(function(r){var m=fmtYM(r.date);if(months.indexOf(m)===-1)months.push(m);});months.sort().reverse();
+    var months=[];records.forEach(function(r){var m=recMonth(r);if(months.indexOf(m)===-1)months.push(m);});months.sort().reverse();
     if(filterMonth==='all'||months.indexOf(filterMonth)===-1)filterMonth=months[0]||'all';
     mfa.style.display='flex';
     mfa.innerHTML=months.map(function(m){return'<button class="mf-btn'+(m===filterMonth?' active':'')+'" data-m="'+m+'" onclick="setMonthFilter(\''+m+'\')">'+m+'</button>';}).join('');
     var html='';
-    var filtRecs=records.filter(function(r){return fmtYM(r.date)===filterMonth;});
+    var filtRecs=records.filter(function(r){return recMonth(r)===filterMonth;});
     pays.forEach(function(p){
       var grouped={};
       filtRecs.filter(function(r){return r.pay===p;}).forEach(function(r){var k=fmtDay(r.date);if(!grouped[k])grouped[k]={inc:0,exp:0};if(r.type==='income')grouped[k].inc+=r.amount;else grouped[k].exp+=r.amount;});
@@ -1517,13 +1311,49 @@ function renderSummary(){
         keys.map(function(k){var bal=grouped[k].inc-grouped[k].exp;return'<tr><td>'+k.slice(5)+'</td><td style="color:#2e7d32">'+(grouped[k].inc?'+'+yen(grouped[k].inc):'-')+'</td><td style="color:#c62828">'+(grouped[k].exp?'-'+yen(grouped[k].exp):'-')+'</td><td style="color:'+(bal>=0?'#2e7d32':'#c62828')+';font-weight:600">'+(bal>=0?'+':'')+yen(bal)+'</td></tr>';}).join('')+
         '</tbody></table></div>';
     });
+    // 給与日別集計
+    (function(){
+      var salRecs=filtRecs.filter(function(r){return r.type==='salary';});
+      if(!salRecs.length)return;
+      var grouped={};
+      salRecs.forEach(function(r){var k=fmtDay(r.date);if(!grouped[k])grouped[k]=0;grouped[k]+=r.amount;});
+      var keys=Object.keys(grouped).sort().reverse();
+      html+='<div style="margin-bottom:20px"><div style="margin-bottom:8px"><span style="display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;background:#e3f2fd;color:#1565c0;font-weight:600">給与収入</span></div>'+
+        '<table class="sum-table"><thead><tr><th>日付</th><th>給与</th></tr></thead><tbody>'+
+        keys.map(function(k){return'<tr><td>'+k.slice(5)+'</td><td style="color:#1565c0;font-weight:700">+'+yen(grouped[k])+'</td></tr>';}).join('')+
+        '</tbody></table></div>';
+    })();
+    // カード別日別集計
+    creditCards.forEach(function(c){
+      var grouped={};
+      filtRecs.filter(function(r){return r.pay==='card'&&r.cardId===c.id;}).forEach(function(r){var k=fmtDay(r.date);if(!grouped[k])grouped[k]={exp:0};grouped[k].exp+=r.amount;});
+      var keys=Object.keys(grouped).sort().reverse();if(!keys.length)return;
+      html+='<div style="margin-bottom:20px"><div style="margin-bottom:8px"><span style="display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;background:#f3e8ff;color:#7c3aed;font-weight:600">'+c.name+'</span></div>'+
+        '<table class="sum-table"><thead><tr><th>日付</th><th>支出</th></tr></thead><tbody>'+
+        keys.map(function(k){return'<tr><td>'+k.slice(5)+'</td><td style="color:#c62828">-'+yen(grouped[k].exp)+'</td></tr>';}).join('')+
+        '</tbody></table></div>';
+    });
     el.innerHTML=html||'<div class="empty">記録がありません</div>';
   } else {
     mfa.style.display='none';
-    var allMonths=[];records.forEach(function(r){var m=fmtYM(r.date);if(allMonths.indexOf(m)===-1)allMonths.push(m);});allMonths.sort().reverse();
+    var allMonths=[];records.forEach(function(r){var m=recMonth(r);if(allMonths.indexOf(m)===-1)allMonths.push(m);});allMonths.sort().reverse();
     var monthData={};allMonths.forEach(function(m){monthData[m]={wallet:0,paypay:0,suica:0,total:0};});
-    records.filter(function(r){return r.type==='expense';}).forEach(function(r){var m=fmtYM(r.date);if(monthData[m]){monthData[m][r.pay]+=r.amount;monthData[m].total+=r.amount;}});
-    el.innerHTML='<table class="sum-table"><thead><tr><th style="text-align:left">年月</th>'+
+    records.filter(function(r){return r.type==='expense';}).forEach(function(r){var m=recMonth(r);if(monthData[m]){monthData[m][r.pay]=(monthData[m][r.pay]||0)+r.amount;monthData[m].total+=r.amount;}});
+    // 給与月別集計（別枠）
+    var salaryByMonth={};
+    records.filter(function(r){return r.type==='salary';}).forEach(function(r){var m=recMonth(r);salaryByMonth[m]=(salaryByMonth[m]||0)+r.amount;});
+    // カード別月別集計
+    var cardMonthData={};
+    creditCards.forEach(function(c){
+      cardMonthData[c.id]={};
+      allMonths.forEach(function(m){cardMonthData[c.id][m]=0;});
+      records.filter(function(r){return r.pay==='card'&&r.cardId===c.id&&r.type==='expense';}).forEach(function(r){
+        var m=recMonth(r);
+        if(cardMonthData[c.id][m]!==undefined) cardMonthData[c.id][m]+=r.amount;
+        else cardMonthData[c.id][m]=r.amount;
+      });
+    });
+    var mainTable='<table class="sum-table"><thead><tr><th style="text-align:left">年月</th>'+
       '<th><span style="display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;background:#555;color:#fff">財布</span></th>'+
       '<th><span style="display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;background:#FF0033;color:#fff">PP</span></th>'+
       '<th><span style="display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;background:#00FA9A;color:#005c38">Suica</span></th>'+
@@ -1531,6 +1361,33 @@ function renderSummary(){
       '<th style="color:#888;font-weight:700">累計</th></tr></thead><tbody>'+
       (function(){var cum=0;return allMonths.slice().reverse().map(function(m){cum+=monthData[m].total;return{m:m,cum:cum};}).reverse().map(function(obj){var m=obj.m;var d=monthData[m];return'<tr><td>'+m+'</td><td style="color:#c62828">'+(d.wallet?yen(d.wallet):'-')+'</td><td style="color:#c62828">'+(d.paypay?yen(d.paypay):'-')+'</td><td style="color:#c62828">'+(d.suica?yen(d.suica):'-')+'</td><td style="color:#c62828;font-weight:700">'+yen(d.total)+'</td><td style="color:#888;font-weight:600">'+yen(obj.cum)+'</td></tr>';}).join('');})() +
       '</tbody></table>';
+    // カード別テーブル（カードがある場合のみ）
+    var cardTables='';
+    creditCards.forEach(function(c){
+      var months=Object.keys(cardMonthData[c.id]).filter(function(m){return cardMonthData[c.id][m]>0;});
+      if(!months.length)return;
+      months.sort().reverse();
+      var cum2=0;
+      var rows=months.slice().reverse().map(function(m){cum2+=cardMonthData[c.id][m];return{m:m,v:cardMonthData[c.id][m],cum:cum2};}).reverse();
+      cardTables+='<div style="margin-top:16px">'+
+        '<div style="margin-bottom:8px"><span style="display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;background:#f3e8ff;color:#7c3aed;font-weight:600">'+c.name+'</span></div>'+
+        '<table class="sum-table"><thead><tr><th style="text-align:left">年月</th><th style="color:#c62828">支出</th><th style="color:#888">累計</th></tr></thead><tbody>'+
+        rows.map(function(obj){return'<tr><td>'+obj.m+'</td><td style="color:#c62828;font-weight:700">'+yen(obj.v)+'</td><td style="color:#888">'+yen(obj.cum)+'</td></tr>';}).join('')+
+        '</tbody></table></div>';
+    });
+    // 給与テーブル
+    var salaryTable='';
+    var salaryMonths=Object.keys(salaryByMonth).sort().reverse();
+    if(salaryMonths.length){
+      var scum=0;
+      var srows=salaryMonths.slice().reverse().map(function(m){scum+=salaryByMonth[m];return{m:m,v:salaryByMonth[m],cum:scum};}).reverse();
+      salaryTable='<div style="margin-top:16px">'+
+        '<div style="margin-bottom:8px"><span style="display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;background:#e3f2fd;color:#1565c0;font-weight:600">給与収入</span></div>'+
+        '<table class="sum-table"><thead><tr><th style="text-align:left">年月</th><th style="color:#1565c0">給与</th><th style="color:#888">累計</th></tr></thead><tbody>'+
+        srows.map(function(obj){return'<tr><td>'+obj.m+'</td><td style="color:#1565c0;font-weight:700">+'+yen(obj.v)+'</td><td style="color:#888">'+yen(obj.cum)+'</td></tr>';}).join('')+
+        '</tbody></table></div>';
+    }
+    el.innerHTML=mainTable+cardTables+salaryTable;
 
     // 銀行口座ごとの引き出し額
     if(bankAccounts.length&&transfers.length){
@@ -1555,7 +1412,7 @@ function renderSummary(){
   }
   var now2=new Date();
   var curYM2=now2.getFullYear()+'/'+pad(now2.getMonth()+1);
-  var totals={};pays.forEach(function(p){totals[p]=records.filter(function(r){return r.pay===p&&r.type==='expense'&&fmtYM(r.date)===curYM2;}).reduce(function(s,r){return s+r.amount;},0);});
+  var totals={};pays.forEach(function(p){totals[p]=records.filter(function(r){return r.pay===p&&r.type==='expense'&&recMonth(r)===curYM2;}).reduce(function(s,r){return s+r.amount;},0);});
   // カードは引き落とし月ベースで今月分を集計
   var cardTotals={};
   creditCards.forEach(function(c){
@@ -1568,9 +1425,9 @@ function renderSummary(){
 }
 function renderGraph(){
   var area=document.getElementById('graph-area');
-  var allMonths=[];records.forEach(function(r){var m=fmtYM(r.date);if(allMonths.indexOf(m)===-1)allMonths.push(m);});allMonths.sort();
+  var allMonths=[];records.forEach(function(r){var m=recMonth(r);if(allMonths.indexOf(m)===-1)allMonths.push(m);});allMonths.sort();
   if(!allMonths.length){area.innerHTML='';return;}
-  var totals=allMonths.map(function(m){return records.filter(function(r){return r.type==='expense'&&fmtYM(r.date)===m;}).reduce(function(s,r){return s+r.amount;},0);});
+  var totals=allMonths.map(function(m){return records.filter(function(r){return r.type==='expense'&&recMonth(r)===m;}).reduce(function(s,r){return s+r.amount;},0);});
   var maxVal=Math.max.apply(null,totals)||1;
   var barW=44,totalW=Math.max(allMonths.length*(barW+12),300);
   var html='<div class="card"><div style="font-size:12px;color:#888;margin-bottom:10px">月別合計支出</div>'+
