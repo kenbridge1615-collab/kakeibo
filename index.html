@@ -309,7 +309,7 @@ input:focus { outline: none; border-color: #555; background: #fff; }
     <input type="file" id="csv-import-input" accept=".csv,text/csv,text/plain,*/*" onchange="importCSV(event)" style="display:none" />
   </div>
 
-  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.25</div>
+  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.27</div>
 </div>
 
 <script>
@@ -1212,13 +1212,15 @@ function processCardBilling(cardId){
   if(!c)return;
   var bank=bankAccounts.find(function(b){return b.id===c.bankId;});
   if(!bank){alert('引落とし口座が設定されていません');return;}
+  // 次回引落とし月を計算（renderCardと同じロジック）
   var now=new Date();
-  var prevDate=new Date(now.getFullYear(),now.getMonth()-1,1);
-  var prevYM=prevDate.getFullYear()+'/'+pad(prevDate.getMonth()+1);
-  var amount=records.filter(function(r){return r.pay==='card'&&r.cardId===cardId&&r.type==='expense'&&cardBillingMonth(r)===prevYM;}).reduce(function(s,r){return s+r.amount;},0);
+  var billingDate=new Date(now.getFullYear(),now.getMonth(),c.day);
+  if(billingDate<=now) billingDate=new Date(now.getFullYear(),now.getMonth()+1,c.day);
+  var nextBillingYM=billingDate.getFullYear()+'/'+pad(billingDate.getMonth()+1);
+  var amount=records.filter(function(r){return r.pay==='card'&&r.cardId===cardId&&r.type==='expense'&&cardBillingMonth(r)===nextBillingYM;}).reduce(function(s,r){return s+r.amount;},0);
   if(!amount){alert('引落とし額がありません');return;}
-  // 銀行からの支出として記録
-  records.unshift({id:Date.now(),type:'expense',amount:amount,pay:'bank',bankId:c.bankId,note:c.name+'引落とし',date:new Date().toISOString()});
+  if(!confirm(c.name+'の引落とし処理（'+yen(amount)+'）を実行しますか？\n引落とし月：'+nextBillingYM)){return;}
+  records.unshift({id:Date.now(),type:'expense',amount:amount,pay:'bank',bankId:c.bankId,note:c.name+'引落とし('+nextBillingYM+')',date:new Date().toISOString()});
   save();renderAll();renderCard();
   alert(c.name+'の引落とし処理（'+yen(amount)+'）を完了しました！');
 }
