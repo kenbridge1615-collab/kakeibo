@@ -245,6 +245,10 @@ input:focus { outline: none; border-color: #555; background: #fff; }
             <button class="toggle-btn" id="tr-to-wallet" onclick="selTo('wallet')">財布</button>
             <button class="toggle-btn sel-paypay" id="tr-to-paypay" onclick="selTo('paypay')">PayPay</button>
             <button class="toggle-btn" id="tr-to-suica" onclick="selTo('suica')">Suica</button>
+            <button class="toggle-btn" id="tr-to-bank" onclick="selTo('bank')">銀行</button>
+          </div>
+          <div id="to-bank-select" style="display:none;margin-top:8px">
+            <div id="to-bank-btns" style="display:flex;flex-wrap:wrap;gap:8px"></div>
           </div>
         </div>
         <div class="form-row">
@@ -309,7 +313,7 @@ input:focus { outline: none; border-color: #555; background: #fff; }
     <input type="file" id="csv-import-input" accept=".csv,text/csv,text/plain,*/*" onchange="importCSV(event)" style="display:none" />
   </div>
 
-  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.27</div>
+  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.28</div>
 </div>
 
 <script>
@@ -344,7 +348,7 @@ function calcRawBal(p){
 function calcRawBankBal(bid){
   var inc=records.filter(function(r){return r.pay==='bank'&&r.bankId===bid&&(r.type==='income'||r.type==='salary');}).reduce(function(s,r){return s+r.amount;},0);
   var exp=records.filter(function(r){return r.pay==='bank'&&r.bankId===bid&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
-  var trIn=transfers.filter(function(t){return t.to==='bank'&&t.bankId===bid;}).reduce(function(s,t){return s+t.amount;},0);
+  var trIn=transfers.filter(function(t){return (t.to==='bank'&&t.toBankId===bid)||(t.to==='bank'&&t.bankId===bid&&!t.toBankId);}).reduce(function(s,t){return s+t.amount;},0);
   var trOut=transfers.filter(function(t){return t.from==='bank'&&t.bankId===bid;}).reduce(function(s,t){return s+t.amount;},0);
   return inc-exp+trIn-trOut;
 }
@@ -413,7 +417,7 @@ function calcCurrentBal(p, bankId){
     var init=(initBalance.bank&&initBalance.bank[bankId])||0;
     var inc=records.filter(function(r){return r.pay==='bank'&&r.bankId===bankId&&r.type==='income';}).reduce(function(s,r){return s+r.amount;},0);
     var exp=records.filter(function(r){return r.pay==='bank'&&r.bankId===bankId&&r.type==='expense';}).reduce(function(s,r){return s+r.amount;},0);
-    var trIn=transfers.filter(function(t){return t.to==='bank'&&t.bankId===bankId;}).reduce(function(s,t){return s+t.amount;},0);
+    var trIn=transfers.filter(function(t){return (t.to==='bank'&&t.toBankId===bankId)||(t.to==='bank'&&t.bankId===bankId&&!t.toBankId);}).reduce(function(s,t){return s+t.amount;},0);
     var trOut=transfers.filter(function(t){return t.from==='bank'&&t.bankId===bankId;}).reduce(function(s,t){return s+t.amount;},0);
     return init+inc-exp+trIn-trOut;
   }
@@ -621,7 +625,7 @@ function selBankAccount(id, silent){
 
 var selType_ = 'expense', selPay_ = 'wallet', pendingId = null, filterPay = 'all', filterType = 'all';
 var selBillingMonth_ = 'this'; // 'this' or 'next'
-var trFrom_ = 'bank', trTo_ = 'paypay', trBankId = null;
+var trFrom_ = 'bank', trTo_ = 'paypay', trBankId = null, trToBankId = null;
 var graphOpen = false, filterMonth = 'all', histTab = 'records';
 var balMonth = 'current';
 
@@ -683,9 +687,27 @@ function selTrBank(id){
 }
 function selTo(p){
   trTo_=p;
-  ['wallet','paypay','suica'].forEach(function(x){
-    document.getElementById('tr-to-'+x).className='toggle-btn'+(x===p?' sel-'+x:'');
+  ['wallet','paypay','suica','bank'].forEach(function(x){
+    var el=document.getElementById('tr-to-'+x);
+    if(el) el.className='toggle-btn'+(x===p?' sel-'+x:'');
   });
+  var toBankArea=document.getElementById('to-bank-select');
+  if(toBankArea) toBankArea.style.display=p==='bank'?'block':'none';
+  if(p==='bank') updateToBankBtns();
+}
+function updateToBankBtns(){
+  var btns=document.getElementById('to-bank-btns');
+  if(!btns)return;
+  if(!bankAccounts.length){btns.innerHTML='<span style="font-size:12px;color:#aaa">銀行口座が登録されていません</span>';return;}
+  if(!trToBankId&&bankAccounts.length) trToBankId=bankAccounts[0].id;
+  btns.innerHTML=bankAccounts.map(function(b){
+    var sel=trToBankId===b.id;
+    return'<button onclick="selToBank('+b.id+')" style="padding:8px 14px;border:1px solid '+(sel?'#f59e0b':'#ddd')+';border-radius:8px;font-size:13px;background:'+(sel?'#fef3c7':'#f5f5f5')+';color:'+(sel?'#92400e':'#888')+';cursor:pointer;font-family:inherit;font-weight:'+(sel?'600':'400')+'">'+b.name+'</button>';
+  }).join('');
+}
+function selToBank(id){
+  trToBankId=id;
+  updateToBankBtns();
 }
 function setHistTab(t){
   histTab=t;
@@ -786,6 +808,8 @@ function addTransfer(){
   if(!amt||amt<=0){alert('金額を入力してください');return;}
   if(trFrom_===trTo_){alert('移動元と移動先が同じです');return;}
   var tr={id:Date.now(),from:trFrom_,to:trTo_,amount:amt,note:note,date:new Date().toISOString()};
+  if(trFrom_==='bank'&&trBankId) tr.bankId=trBankId;
+  if(trTo_==='bank'&&trToBankId) tr.toBankId=trToBankId;
   if(trFrom_==='bank'&&trBankId) tr.bankId=trBankId;
   transfers.unshift(tr);
   saveTransfers();document.getElementById('tr-amount').value='';document.getElementById('tr-note').value='';
