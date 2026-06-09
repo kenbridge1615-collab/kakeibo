@@ -313,7 +313,7 @@ input:focus { outline: none; border-color: #555; background: #fff; }
     <input type="file" id="csv-import-input" accept=".csv,text/csv,text/plain,*/*" onchange="importCSV(event)" style="display:none" />
   </div>
 
-  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.28</div>
+  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.29</div>
 </div>
 
 <script>
@@ -1363,8 +1363,10 @@ function renderSummary(){
   } else {
     mfa.style.display='none';
     var allMonths=[];records.forEach(function(r){var m=recMonth(r);if(allMonths.indexOf(m)===-1)allMonths.push(m);});allMonths.sort().reverse();
-    var monthData={};allMonths.forEach(function(m){monthData[m]={wallet:0,paypay:0,suica:0,total:0};});
-    records.filter(function(r){return r.type==='expense';}).forEach(function(r){var m=recMonth(r);if(monthData[m]){monthData[m][r.pay]=(monthData[m][r.pay]||0)+r.amount;monthData[m].total+=r.amount;}});
+    var monthData={};allMonths.forEach(function(m){monthData[m]={wallet:0,paypay:0,suica:0,total:0,income:0,cardExp:0};});
+    records.filter(function(r){return r.type==='expense';}).forEach(function(r){var m=recMonth(r);if(monthData[m]){if(r.pay==='card'){monthData[m].cardExp+=r.amount;}else{monthData[m][r.pay]=(monthData[m][r.pay]||0)+r.amount;}monthData[m].total+=r.amount;}});
+    // 給与以外の収入を月別集計（実支出の計算用）
+    records.filter(function(r){return r.type==='income';}).forEach(function(r){var m=recMonth(r);if(monthData[m]) monthData[m].income+=r.amount;});
     // 給与月別集計（別枠）
     var salaryByMonth={};
     records.filter(function(r){return r.type==='salary';}).forEach(function(r){var m=recMonth(r);salaryByMonth[m]=(salaryByMonth[m]||0)+r.amount;});
@@ -1384,9 +1386,10 @@ function renderSummary(){
       '<th><span style="display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;background:#FF0033;color:#fff">PP</span></th>'+
       '<th><span style="display:inline-block;font-size:10px;padding:1px 6px;border-radius:99px;background:#00FA9A;color:#005c38">Suica</span></th>'+
       '<th style="color:#1a1a1a;font-weight:700">月計</th>'+
-      '<th style="color:#888;font-weight:700">累計</th></tr></thead><tbody>'+
-      (function(){var cum=0;return allMonths.slice().reverse().map(function(m){cum+=monthData[m].total;return{m:m,cum:cum};}).reverse().map(function(obj){var m=obj.m;var d=monthData[m];return'<tr><td>'+m+'</td><td style="color:#c62828">'+(d.wallet?yen(d.wallet):'-')+'</td><td style="color:#c62828">'+(d.paypay?yen(d.paypay):'-')+'</td><td style="color:#c62828">'+(d.suica?yen(d.suica):'-')+'</td><td style="color:#c62828;font-weight:700">'+yen(d.total)+'</td><td style="color:#888;font-weight:600">'+yen(obj.cum)+'</td></tr>';}).join('');})() +
-      '</tbody></table>';
+      '<th style="color:#1565c0;font-weight:700">実支出</th></tr></thead><tbody>'+
+      (function(){return allMonths.map(function(m){var d=monthData[m];var real=d.total-d.income;var cardNote=d.cardExp?'<br><span style="font-size:9px;color:#7c3aed">カード'+yen(d.cardExp)+'</span>':'';return'<tr><td>'+m+'</td><td style="color:#c62828">'+(d.wallet?yen(d.wallet):'-')+'</td><td style="color:#c62828">'+(d.paypay?yen(d.paypay):'-')+'</td><td style="color:#c62828">'+(d.suica?yen(d.suica):'-')+'</td><td style="color:#c62828;font-weight:700">'+yen(d.total)+cardNote+'</td><td style="color:#1565c0;font-weight:700">'+yen(real)+'</td></tr>';}).join('');})() +
+      '</tbody></table>'+
+      '<div style="font-size:11px;color:#aaa;margin-top:6px;line-height:1.5">実支出 = 月計支出 −（給与以外の）収入。建て替えの回収などを差し引いた、実際に自分が使った額です。カード支出も月計に含まれます。</div>';
     // カード別テーブル（カードがある場合のみ）
     var cardTables='';
     creditCards.forEach(function(c){
