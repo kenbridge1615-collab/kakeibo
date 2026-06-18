@@ -313,7 +313,7 @@ input:focus { outline: none; border-color: #555; background: #fff; }
     <input type="file" id="csv-import-input" accept=".csv,text/csv,text/plain,*/*" onchange="importCSV(event)" style="display:none" />
   </div>
 
-  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.29</div>
+  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.30</div>
 </div>
 
 <script>
@@ -1328,6 +1328,22 @@ function renderSummary(){
     mfa.innerHTML=months.map(function(m){return'<button class="mf-btn'+(m===filterMonth?' active':'')+'" data-m="'+m+'" onclick="setMonthFilter(\''+m+'\')">'+m+'</button>';}).join('');
     var html='';
     var filtRecs=records.filter(function(r){return recMonth(r)===filterMonth;});
+    // 全形態まとめ（収入・支出・給与すべて合算）
+    (function(){
+      var grouped={};
+      filtRecs.forEach(function(r){
+        if(r.type==='salary') return; // 給与は別枠なので除外
+        var k=fmtDay(r.date);
+        if(!grouped[k])grouped[k]={inc:0,exp:0};
+        if(r.type==='expense') grouped[k].exp+=r.amount;
+        else grouped[k].inc+=r.amount;
+      });
+      var keys=Object.keys(grouped).sort().reverse();if(!keys.length)return;
+      html+='<div style="margin-bottom:20px"><div style="margin-bottom:8px"><span style="display:inline-block;font-size:12px;padding:3px 10px;border-radius:99px;background:#1a1a1a;color:#fff;font-weight:600">全形態まとめ</span></div>'+
+        '<table class="sum-table"><thead><tr><th>日付</th><th>収入</th><th>支出</th><th>収支</th></tr></thead><tbody>'+
+        keys.map(function(k){var bal=grouped[k].inc-grouped[k].exp;return'<tr><td>'+k.slice(5)+'</td><td style="color:#2e7d32">'+(grouped[k].inc?'+'+yen(grouped[k].inc):'-')+'</td><td style="color:#c62828">'+(grouped[k].exp?'-'+yen(grouped[k].exp):'-')+'</td><td style="color:'+(bal>=0?'#2e7d32':'#c62828')+';font-weight:600">'+(bal>=0?'+':'')+yen(bal)+'</td></tr>';}).join('')+
+        '</tbody></table></div>';
+    })();
     pays.forEach(function(p){
       var grouped={};
       filtRecs.filter(function(r){return r.pay===p;}).forEach(function(r){var k=fmtDay(r.date);if(!grouped[k])grouped[k]={inc:0,exp:0};if(r.type==='income')grouped[k].inc+=r.amount;else grouped[k].exp+=r.amount;});
