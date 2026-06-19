@@ -313,7 +313,7 @@ input:focus { outline: none; border-color: #555; background: #fff; }
     <input type="file" id="csv-import-input" accept=".csv,text/csv,text/plain,*/*" onchange="importCSV(event)" style="display:none" />
   </div>
 
-  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.30</div>
+  <div style="text-align:center;padding:16px 0 8px;font-size:11px;color:#bbb">ver 4.32</div>
 </div>
 
 <script>
@@ -744,6 +744,11 @@ function renderPayFilterBar(){
   }).join('');
 }
 function setBalMonth(m){ balMonth=m; renderBalance(); }
+var balCardOffset={}; // 残高タブのカード表示月オフセット
+function shiftBalCard(cardId, delta){
+  balCardOffset[cardId]=(balCardOffset[cardId]||0)+delta;
+  renderBalance();
+}
 function setMonthFilter(m){
   filterMonth=m;
   document.querySelectorAll('.mf-btn').forEach(function(b){
@@ -1136,25 +1141,51 @@ function renderBalance(){
     var curYM2=now2.getFullYear()+'/'+pad(now2.getMonth()+1);
     html+='<div style="margin-top:10px">';
     creditCards.forEach(function(c){
-      var unpaid=records.filter(function(r){return r.pay==='card'&&r.cardId===c.id&&r.type==='expense'&&cardBillingMonth(r)===curYM2;}).reduce(function(s,r){return s+r.amount;},0);
       var billingDate=new Date(now2.getFullYear(),now2.getMonth(),c.day);
-      if(billingDate<now2) billingDate=new Date(now2.getFullYear(),now2.getMonth()+1,c.day);
+      if(billingDate<=now2) billingDate=new Date(now2.getFullYear(),now2.getMonth()+1,c.day);
       var daysLeft=Math.ceil((billingDate-now2)/(1000*60*60*24));
-      var urgent=daysLeft<=7&&unpaid>0;
-      html+='<div style="background:#fff;border-radius:12px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;'+(urgent?'border:1px solid #a855f7;':'')+'">'+
+      var off=balCardOffset[c.id]||0;
+      // 表示月 = 今月 + off
+      var dispDate=new Date(now2.getFullYear(),now2.getMonth()+off,1);
+      var dispYM=dispDate.getFullYear()+'/'+pad(dispDate.getMonth()+1);
+      var amount=records.filter(function(r){return r.pay==='card'&&r.cardId===c.id&&r.type==='expense'&&cardBillingMonth(r)===dispYM;}).reduce(function(s,r){return s+r.amount;},0);
+      var urgent=daysLeft<=7&&amount>0&&off===0;
+      var label=off===0?'今月使用額':dispYM+'分';
+      html+='<div class="bal-card-swipe" data-cardid="'+c.id+'" style="background:#fff;border-radius:12px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;'+(urgent?'border:1px solid #a855f7;':'')+'">'+
         '<div>'+
           '<span style="display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;background:#f3e8ff;color:#7c3aed;font-weight:600;margin-bottom:4px">'+c.name+'</span>'+
           '<div style="font-size:11px;color:#aaa">'+(urgent?'⚠ '+daysLeft+'日後引落とし':'引落とし '+c.day+'日')+'</div>'+
         '</div>'+
-        '<div style="text-align:right">'+
-          '<div style="font-size:16px;font-weight:700;color:'+(unpaid>0?'#7c3aed':'#aaa')+'">'+yen(unpaid)+'</div>'+
-          '<div style="font-size:10px;color:#aaa">今月使用額</div>'+
+        '<div style="display:flex;align-items:center;gap:6px">'+
+          '<button onclick="shiftBalCard('+c.id+',-1)" style="background:#f5f5f5;border:1px solid #ddd;border-radius:6px;width:24px;height:24px;font-size:13px;cursor:pointer;font-family:inherit;color:#888;padding:0">‹</button>'+
+          '<div style="text-align:right;min-width:80px">'+
+            '<div style="font-size:16px;font-weight:700;color:'+(amount>0?'#7c3aed':'#aaa')+'">'+yen(amount)+'</div>'+
+            '<div style="font-size:10px;color:#aaa">'+label+'</div>'+
+          '</div>'+
+          '<button onclick="shiftBalCard('+c.id+',1)" style="background:#f5f5f5;border:1px solid #ddd;border-radius:6px;width:24px;height:24px;font-size:13px;cursor:pointer;font-family:inherit;color:#888;padding:0">›</button>'+
         '</div>'+
       '</div>';
     });
     html+='</div>';
   }
   document.getElementById('balance-area').innerHTML=html;
+  // 残高タブのカードにスワイプリスナー
+  document.getElementById('balance-area').querySelectorAll('.bal-card-swipe').forEach(function(area){
+    var startX=0, startY=0, tracking=false;
+    var cid=parseFloat(area.dataset.cardid);
+    area.addEventListener('touchstart',function(e){
+      startX=e.touches[0].clientX; startY=e.touches[0].clientY; tracking=true;
+    },{passive:true});
+    area.addEventListener('touchend',function(e){
+      if(!tracking)return; tracking=false;
+      var dx=e.changedTouches[0].clientX-startX;
+      var dy=e.changedTouches[0].clientY-startY;
+      if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)*1.5){
+        if(dx<0) shiftBalCard(cid,1);
+        else shiftBalCard(cid,-1);
+      }
+    },{passive:true});
+  });
 }
 function recordHTML(r,showBtns){
   var ts=fmt(r.date),col=r.type==='income'?'#2e7d32':r.type==='salary'?'#1565c0':'#c62828',sign=(r.type==='income'||r.type==='salary')?'+':'-';
@@ -1169,6 +1200,12 @@ function recordHTML(r,showBtns){
     '</div>';
   }
   return html+'</div>';
+}
+var cardDetailOffset={}; // カードIDごとの明細表示月オフセット（0=次回引落とし月）
+function shiftCardDetail(cardId, delta){
+  cardDetailOffset[cardId]=(cardDetailOffset[cardId]||0)+delta;
+  if(cardDetailOffset[cardId]<0) cardDetailOffset[cardId]=0; // 過去には戻さない（必要なら制限解除可）
+  renderCard();
 }
 function renderCard(){
   var el=document.getElementById('card-area');
@@ -1214,22 +1251,45 @@ function renderCard(){
       (nextBilling>0&&bank?
         '<button onclick="processCardBilling('+c.id+')" style="width:100%;padding:10px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit">引落とし処理（'+yen(nextBilling)+'）</button>'
         :'<button style="width:100%;padding:10px;background:#f5f5f5;color:#aaa;border:1px solid #eee;border-radius:8px;font-size:14px;font-family:inherit" disabled>引落とし予定なし</button>')+
-      // 今月の明細
-      '<div style="margin-top:12px;font-size:12px;font-weight:600;color:#666;margin-bottom:6px">'+nextBillingYM+'引落とし 明細</div>'+
+      // 明細（スワイプ/矢印で月切り替え）
       (function(){
-        var items=records.filter(function(r){return r.pay==='card'&&r.cardId===c.id&&r.type==='expense'&&cardBillingMonth(r)===nextBillingYM;});
-        if(!items.length)return'<div style="font-size:13px;color:#aaa;text-align:center;padding:8px">使用履歴なし</div>';
-        return items.map(function(r){
-          var ts=fmt(r.date);
-          return'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f5f5f5;font-size:13px">'+
-            '<div><span style="color:#999">'+ts.date+'</span> <span>'+r.note+'</span></div>'+
-            '<span style="color:#7c3aed;font-weight:500">-'+yen(r.amount)+'</span>'+
-          '</div>';
-        }).join('');
+        var off=cardDetailOffset[c.id]||0;
+        // 表示月 = 次回引落とし月 + off ヶ月
+        var dispDate=new Date(billingDate.getFullYear(),billingDate.getMonth()+off,1);
+        var dispYM=dispDate.getFullYear()+'/'+pad(dispDate.getMonth()+1);
+        var items=records.filter(function(r){return r.pay==='card'&&r.cardId===c.id&&r.type==='expense'&&cardBillingMonth(r)===dispYM;});
+        var sum=items.reduce(function(s,r){return s+r.amount;},0);
+        var detailRows=items.length
+          ? items.map(function(r){var ts=fmt(r.date);return'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f5f5f5;font-size:13px"><div><span style="color:#999">'+ts.date+'</span> <span>'+r.note+'</span></div><span style="color:#7c3aed;font-weight:500">-'+yen(r.amount)+'</span></div>';}).join('')
+          : '<div style="font-size:13px;color:#aaa;text-align:center;padding:8px">使用履歴なし</div>';
+        return '<div style="margin-top:12px;display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'+
+            '<button onclick="shiftCardDetail('+c.id+',-1)" style="background:#f5f5f5;border:1px solid #ddd;border-radius:6px;width:28px;height:28px;font-size:14px;cursor:pointer;font-family:inherit;color:'+(off>0?'#555':'#ccc')+'"'+(off>0?'':' disabled')+'>‹</button>'+
+            '<div style="font-size:12px;font-weight:600;color:#666;text-align:center">'+dispYM+'引落とし 明細<br><span style="font-size:11px;color:#7c3aed">計 '+yen(sum)+'</span></div>'+
+            '<button onclick="shiftCardDetail('+c.id+',1)" style="background:#f5f5f5;border:1px solid #ddd;border-radius:6px;width:28px;height:28px;font-size:14px;cursor:pointer;font-family:inherit;color:#555">›</button>'+
+          '</div>'+
+          '<div class="card-detail-swipe" data-cardid="'+c.id+'">'+detailRows+'</div>';
       })()+
     '</div>';
   });
   el.innerHTML=html;
+  // スワイプリスナーを登録
+  el.querySelectorAll('.card-detail-swipe').forEach(function(area){
+    var startX=0, startY=0, tracking=false;
+    var cid=parseFloat(area.dataset.cardid);
+    area.addEventListener('touchstart',function(e){
+      startX=e.touches[0].clientX; startY=e.touches[0].clientY; tracking=true;
+    },{passive:true});
+    area.addEventListener('touchend',function(e){
+      if(!tracking)return; tracking=false;
+      var dx=e.changedTouches[0].clientX-startX;
+      var dy=e.changedTouches[0].clientY-startY;
+      // 横スワイプ判定（縦移動が少なく、横移動が40px以上）
+      if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)*1.5){
+        if(dx<0) shiftCardDetail(cid,1);   // 左スワイプ→次の月
+        else shiftCardDetail(cid,-1);      // 右スワイプ→前の月
+      }
+    },{passive:true});
+  });
 }
 function processCardBilling(cardId){
   var c=creditCards.find(function(c){return c.id===cardId;});
